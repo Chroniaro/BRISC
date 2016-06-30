@@ -21,16 +21,44 @@ public class Generator {
 		Random rand = new Random();
 		rand.setSeed((seed + r.x + "-0-" + r.y + seed).hashCode());
 		
-		generatePlanets(rand, r);		
+		generatePlanets(rand, r, seed);		
 		
 	}
 	
-	public static void generatePlanets(Random rand, Region r) {
+	public static int getPlanetNumber(Random rand) {
 		
-		int planets = (int)Math.round(rand.nextGaussian() * 0.8 + 2.1);
+		return (int)Math.round(rand.nextGaussian() * 0.8 + 2.1);
+		
+	}
+	
+	public static boolean shouldGenSystem(Random rand, Region r, String seed, int planets) {
+		
+		if(planets >= 2 && rand.nextDouble() <= (0.5 / planets))
+			for(int x = -1; x < 2; x++)
+				for(int y = -1; y < 2; y++) {
+					
+					if(x == 0 && y == 0) continue;
+					
+					Random checkRand = new Random();
+					checkRand.setSeed((seed + (r.x + x) + "-0-" + (r.y + y) + seed).hashCode());
+					int checkP = getPlanetNumber(checkRand);
+					if(checkP >= planets && checkRand.nextDouble() <= (0.5 / checkP))
+						return false;
+					
+				}
+		else
+			return false;
+		
+		return true;
+		
+	}
+	
+	public static void generatePlanets(Random rand, Region r, String seed) {
+		
+		int planets = getPlanetNumber(rand);
 		if(planets >= 1) {
 			
-			if(planets >= 2 && rand.nextDouble() <= (0.5 / planets) && (r.x + r.y) % 3 == 0)
+			if(shouldGenSystem(rand, r, seed, planets))
 				generateSolarSystem(rand, r, planets + 1);
 			else
 				generateRocks(rand, r, planets);
