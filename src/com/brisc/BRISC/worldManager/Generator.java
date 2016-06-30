@@ -71,7 +71,7 @@ public class Generator {
 			if(rand.nextDouble() < 0.3)
 				c = Color.red.darker().darker();
 			if(rand.nextDouble() < 0.02)
-				c = new Color(.2f, 0f, .5f);
+				c = new Color(.15f, 0f, .5f);
 			
 			p = new Planet(
 					location.x + (starSize - psize) / 2 + (Math.sin(ang) * dist), 
