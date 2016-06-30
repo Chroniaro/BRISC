@@ -21,7 +21,6 @@ public class Planet extends Orbitor {
     public Planet(double x, double y, double size, Color color, double dist, double currentAng, double speed) {
     	
     	super(getImage(size, color), x, y, dist, currentAng, speed);
-    	this.setVisible(true);
     	
     }
     

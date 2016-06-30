@@ -77,6 +77,7 @@ public class Generator {
 				(int)((r.y + rand.nextDouble()) * World.regionsize));
 		Planet p = new Planet(location.x, location.y, starSize, Color.orange);
 		r.entities.add(p);
+		p.setVisible(true);
 		
 		double previousDist = starSize / 2;
 		
@@ -106,6 +107,7 @@ public class Generator {
 					location.y + (starSize - psize) / 2 + (Math.cos(ang) * dist), 
 					psize, c, dist, ang, speed);
 			r.entities.add(p);
+			p.setVisible(true);
 			
 		}
 		
@@ -121,6 +123,7 @@ public class Generator {
 			while(size < 20 || size > 100);
 			Planet p = new Planet((r.x + rand.nextDouble()) * World.regionsize, (r.y + rand.nextDouble()) * World.regionsize, size, Color.gray);
 			r.entities.add(p);
+			p.setVisible(true);
 	
 		}
 		
