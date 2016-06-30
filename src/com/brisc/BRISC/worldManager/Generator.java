@@ -70,7 +70,7 @@ public class Generator {
 			Color c = Color.blue;
 			if(rand.nextDouble() < 0.3)
 				c = Color.red.darker().darker();
-			if(rand.nextDouble() < 0.01)
+			if(rand.nextDouble() < 0.02)
 				c = new Color(.2f, 0f, .5f);
 			
 			p = new Planet(
