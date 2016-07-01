@@ -1,6 +1,5 @@
 package com.brisc.BRISC.entities;
 
-import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 
 public abstract class Orbitor extends Entity {

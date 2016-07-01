@@ -8,10 +8,8 @@ package com.brisc.BRISC.entities;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.HashMap;
-
 import com.brisc.BRISC.worldManager.World;
 
-import javafx.scene.shape.Line;
 
 /**
  *

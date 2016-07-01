@@ -7,7 +7,6 @@ package com.brisc.BRISC.entities;
 
 import java.awt.*;
 import java.awt.image.*;
-import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
