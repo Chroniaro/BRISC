@@ -15,6 +15,7 @@ import com.brisc.BRISC.worldManager.*;
 public abstract class AbstractEntity {
     
     public double x, y;
+    public double layer = 0;
     
     public static final String 
 		WL_DATA          = "WL_DATA",

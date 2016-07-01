@@ -25,6 +25,7 @@ public class Laser extends Entity {
         this.setVisible(true);
         this.sx = dx;
         this.sy = dy;
+        this.layer = 8;
         
     }
     

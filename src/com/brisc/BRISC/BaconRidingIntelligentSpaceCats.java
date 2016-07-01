@@ -25,6 +25,7 @@ public class BaconRidingIntelligentSpaceCats {
     static JFrame frame;
     static Component visual;
     static GamePhase current;
+    static boolean fullScreen;
     
     /**
      * @param args the command line arguments
@@ -34,12 +35,10 @@ public class BaconRidingIntelligentSpaceCats {
                 
         frame = new JFrame();
         frame.setPreferredSize(new Dimension(1024,768));
-        frame.setResizable(false);
         frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         frame.addWindowListener(new closeOperation());
         frame.setTitle("BRISC");
         frame.setVisible(true);
-        
         frame.addComponentListener(new componentEvents());
         frame.addKeyListener(new keyEvents());
         frame.addMouseWheelListener(new wheeleEvents());

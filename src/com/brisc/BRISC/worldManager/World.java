@@ -42,7 +42,8 @@ public class World {
     		Cat.class,
     		Laser.class,
     		Orbitor.class,
-    		Planet.class
+    		Planet.class,
+    		Enemy.class
     	}) {
     	
 	    	try {
@@ -64,12 +65,12 @@ public class World {
     	
     }
 	
-	public void update() {
+	public void update(double catX, double catY) {
 		
 		for(int x = loadedArea.x; x < loadedArea.x + loadedArea.width; x++)
         	for(int y = loadedArea.y; y < loadedArea.y + loadedArea.height; y++) {
         	
-        		regions.get(id(x, y)).update();
+        		regions.get(id(x, y)).update(catX, catY);
         		
         	}
 		

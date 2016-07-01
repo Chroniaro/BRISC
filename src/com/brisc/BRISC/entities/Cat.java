@@ -37,6 +37,7 @@ public class Cat extends Entity {
 
     	super(ResourceManager.getCat(type), x, y);
     	this.type = type;
+    	this.layer = 10;
         
     }
     

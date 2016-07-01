@@ -17,7 +17,9 @@ import javax.imageio.ImageIO;
 public abstract class ResourceManager {
     
     public enum Resources {
-        catBlack, catBrown, catOrange, catTabby, catPurple, backGround, spaceGeneric, crosshair
+        catBlack, catBrown, catOrange, catTabby, catPurple, 
+        backGround, spaceGeneric, crosshair,
+        enemyBasic
     }
     
     public static URL getResource(String resource) {
@@ -48,13 +50,16 @@ public abstract class ResourceManager {
                     return ImageIO.read(getResource("images/cats/BRISC Purple.png"));
                     
                 case backGround:
-                    return ImageIO.read(getResource("images/BackGround.png"));
+                    return ImageIO.read(getResource("images/BackGround.jpg"));
                     
                 case spaceGeneric:
                     return ImageIO.read(getResource("images/SpaceTile.png"));
                     
                 case crosshair:
                     return ImageIO.read(getResource("images/crosshair.png"));
+                    
+                case enemyBasic:
+                	return ImageIO.read(getResource("images/enemies/enemy_basic.png"));
 
                 default:
                     return(null);

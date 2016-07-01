@@ -42,6 +42,8 @@ public class Menu extends GamePhase {
     public void update() {
         
         Point mouseLocation = getMousePosition();
+        mouseLocation.x *= 1024 / getWidth();
+        mouseLocation.y *= 768 / getHeight();
 
         for(Button b: buttons)
             b.update(mouseLocation, mouseDown);
@@ -63,8 +65,11 @@ public class Menu extends GamePhase {
     
     @Override
     public void render(Graphics2D g2d) {
+    	
+    	if(getBounds() != null)
+    		g2d.scale(getWidth() / 1024, getHeight() / 768);
         
-        g2d.drawImage(ResourceManager.getResource(ResourceManager.Resources.backGround), 0, 0, null);
+        g2d.drawImage(ResourceManager.getResource(ResourceManager.Resources.backGround), 0, 0, 1024, 768, null);
         
         Font font = new Font(Font.SERIF, Font.BOLD, 40);
         g2d.setFont(font);

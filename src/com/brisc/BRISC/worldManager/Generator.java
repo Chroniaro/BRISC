@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Point;
 import java.util.Random;
 
+import com.brisc.BRISC.entities.Enemy;
 import com.brisc.BRISC.entities.Planet;
 
 public class Generator {
@@ -94,7 +95,7 @@ public class Generator {
 			
 			previousDist = dist + psize / 2;
 			
-			double speed =  (rand.nextDouble() - 0.5) * 0.04 + 0.005 * rand.nextGaussian();
+			double speed =  0.01 + (rand.nextDouble() - 0.5) * 0.04 + 0.005 * rand.nextGaussian();
 			
 			Color c = Color.blue;
 			if(rand.nextDouble() < 0.3)
@@ -107,6 +108,23 @@ public class Generator {
 					location.y + (starSize - psize) / 2 + (Math.cos(ang) * dist), 
 					psize, c, dist, ang, speed);
 			r.entities.add(p);
+			p.layer = 1;
+			p.setVisible(true);
+			
+			if(rand.nextDouble() < 0.6) {
+				
+				Enemy e = new Enemy(
+						location.x + (starSize - psize) / 2 + (Math.sin(ang) * dist) + 32, 
+						location.y + (starSize - psize) / 2 + (Math.cos(ang) * dist) + 32, 
+						dist, ang, speed, new Point(location.x + starSize / 2, location.y + starSize / 2)
+				);
+				
+				r.entities.add(e);
+				e.layer = 3;
+				e.setVisible(true);
+				
+			}
+			
 			p.setVisible(true);
 			
 		}

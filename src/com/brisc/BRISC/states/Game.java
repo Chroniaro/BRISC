@@ -7,10 +7,13 @@ package com.brisc.BRISC.states;
 
 import com.brisc.BRISC.entities.Entity;
 import com.brisc.BRISC.entities.Laser;
+import com.brisc.BRISC.entities.Orbitor;
 import com.brisc.BRISC.menu.ExitMenu;
 import com.brisc.BRISC.menu.GameMenu;
 import com.brisc.BRISC.menu.ResourceMenu;
+import com.brisc.BRISC.entities.AbstractEntity;
 import com.brisc.BRISC.entities.Cat;
+import com.brisc.BRISC.entities.Enemy;
 import com.brisc.BRISC.worldManager.World;
 import com.brisc.Resources.ResourceManager;
 import java.awt.*;
@@ -20,6 +23,8 @@ import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 import java.text.DecimalFormat;
 import java.util.*;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  *
@@ -40,7 +45,7 @@ public class Game extends GamePhase {
     private final static BufferedImage crosshair = ResourceManager.getResource(ResourceManager.Resources.crosshair);
     public short mouse = 0;
     BufferedImage spaceBits;
-    ArrayList<GameMenu> openMenus;
+    List<GameMenu> openMenus;
     private boolean crosshairCursor = true;
     private boolean eMenuOpen;
     World world;
@@ -51,7 +56,7 @@ public class Game extends GamePhase {
     
     public Game(World w) {
     	
-    	openMenus = new ArrayList<>();
+    	openMenus = new CopyOnWriteArrayList<>();
         
         swarm = new ArrayList<>();
         swarm.add(new Cat(448,350,0));
@@ -90,6 +95,8 @@ public class Game extends GamePhase {
     @Override
     public void update() {
     	
+    	Point offset = new Point((int)((getWidth() - 1024) / 2), (int) ((getHeight() - 768) / 2));
+    	
     	if(openMenus.size() > 0 ) {
     		
     		for(GameMenu m : openMenus) {
@@ -101,17 +108,24 @@ public class Game extends GamePhase {
     	
     	Point mouseLocation = getMousePosition();
     	
-    	if(super.getMousePosition().distance(centerOfMotion) > 100) {
+    	Point mp = super.getMousePosition();
+    	mp.x -= offset.x;
+    	mp.y -= offset.y;
+    	if(mp.distance(centerOfMotion) > 100) {
             
+    		double multi = 1;
+    		if(Enemy.enemiesOnCats >= 1)
+    			multi = .25;
+    		
             final double ratio;
-            if(super.getMousePosition().distance(centerOfMotion) > 300) {
-                ratio = 200 / super.getMousePosition().distance(centerOfMotion);
+            if(mp.distance(centerOfMotion) > 300) {
+                ratio = 200 / mp.distance(centerOfMotion);
                 
             } else {
-                ratio = Math.pow(super.getMousePosition().distance(centerOfMotion) - 100 , 2)/200 / super.getMousePosition().distance(centerOfMotion);
+                ratio = Math.pow(mp.distance(centerOfMotion) - 100 , 2)/200 / mp.distance(centerOfMotion);
             }
-            dx = (super.getMousePosition().x - centerOfMotion.x) * ratio * speed /20;
-            dy = (super.getMousePosition().y - centerOfMotion.y) * ratio * speed/20;
+            dx = multi * (mp.x - centerOfMotion.x) * ratio * speed / 20;
+            dy = multi * (mp.y - centerOfMotion.y) * ratio * speed / 20;
             
             
         } else {
@@ -126,7 +140,7 @@ public class Game extends GamePhase {
         		(int)loadedChunkSpace.getWidth(), (int)loadedChunkSpace.getHeight()
         ));
         
-        world.update();
+        world.update(x, y);
         
         if(bounce)
             bounceHeight += .1;
@@ -160,14 +174,14 @@ public class Game extends GamePhase {
         
     	if(getBounds() == null) return;
     	
-    	g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
+    	Point offset = new Point((int)((getWidth() - 1024) / 2), (int) ((getHeight() - 768) / 2));
     	
     	//Scale
     	final Rectangle r = new Rectangle(
-				(int)(getWidth() * (1-size) / 2), 
-				(int)(getHeight() * (1-size) / 2), 
-				(int)(getWidth() * size), 
-				(int)(getHeight() * size)
+				(int)(offset.x + 1024 * (1-size) / 2), 
+				(int)(offset.y + 768 * (1-size) / 2), 
+				(int)(1024 * size), 
+				(int)(768 * size)
 		);
     	g2d.setClip(r);
     	AffineTransform at = g2d.getTransform();
@@ -205,18 +219,31 @@ public class Game extends GamePhase {
         }
 
         //Render Space Objects
-        while(true) {
-            try {
-            	for(Entity o : world.getAllEntities(Entity.class)) {
-	                if(o.isVisible()) {
-	                    g2d.drawImage(o.getSprite(), centerOfMotion.x + (int)(o.x - x), centerOfMotion.y + (int)(o.y - y), null);
-	                }
+    	List<Entity> entities = world.getAllEntities(Entity.class);
+    	sort(entities);
+    	for(Entity o : entities) {
+            if(o.isVisible()) {
+            	AffineTransform prev = g2d.getTransform();
+            	if(Orbitor.class.isAssignableFrom(o.getClass())) {
+            		
+            		if(((Orbitor) o).speed >= 0)
+                		g2d.rotate(
+                				2*Math.PI - ((Orbitor) o).ang, 
+                				centerOfMotion.x + (int)(o.x - x) + (o.getSprite().getWidth() / 2), 
+                				centerOfMotion.y + (int)(o.y - y) + (o.getSprite().getHeight() / 2)
+                		);
+            		else
+            			g2d.rotate(
+                				3*Math.PI - ((Orbitor) o).ang, 
+                				centerOfMotion.x + (int)(o.x - x) + (o.getSprite().getWidth() / 2), 
+                				centerOfMotion.y + (int)(o.y - y) + (o.getSprite().getHeight() / 2)
+                		);
+            		
             	}
-                break;
-            } catch(ConcurrentModificationException e) {
-                e.printStackTrace();
+            	g2d.drawImage(o.getSprite(), centerOfMotion.x + (int)(o.x - x), centerOfMotion.y + (int)(o.y - y), null);
+                g2d.setTransform(prev);
             }
-        }
+    	}
         
         //Render Cats
         for(Cat c: swarm) {
@@ -249,19 +276,12 @@ public class Game extends GamePhase {
             //Draw Object Boxes
             g2d.setColor(Color.white);
             g2d.setStroke(new BasicStroke(3));
-            while(true) {
-                try {
-                    for(Entity o : world.getAllEntities(Entity.class)) {
-                        if(o.isVisible()) {
-                            g2d.drawRect(centerOfMotion.x + (int)(o.x - x), centerOfMotion.y + (int)(o.y - y), o.getSprite().getWidth(), o.getSprite().getHeight());
-                        }
-                    }
-                    break;
-                } catch(ConcurrentModificationException e) {
-                	e.printStackTrace();
+            for(Entity o : world.getAllEntities(Entity.class)) {
+                if(o.isVisible()) {
+                    g2d.drawRect(centerOfMotion.x + (int)(o.x - x), centerOfMotion.y + (int)(o.y - y), o.getSprite().getWidth(), o.getSprite().getHeight());
                 }
             }
-            
+                    
             //Draw Chunk Borders
             g2d.setColor(Color.green);
             Point region = World.region(x + centerOfMotion.x, y + centerOfMotion.y);
@@ -291,13 +311,13 @@ public class Game extends GamePhase {
 	        //Draw Mouse Circles
 	        g2d.setColor(new Color(1,0,0,(float)0.5));
 	        g2d.setStroke(new BasicStroke(5));
-	        g2d.drawOval(centerOfMotion.x - 100, centerOfMotion.y - 100, 200, 200);
-	        g2d.drawOval(centerOfMotion.x - 300, centerOfMotion.y - 300, 600, 600);
-	        g2d.fillOval(centerOfMotion.x - 10, centerOfMotion.y - 10, 20, 20);
+	        g2d.drawOval(offset.x + centerOfMotion.x - 100, offset.y + centerOfMotion.y - 100, 200, 200);
+	        g2d.drawOval(offset.x + centerOfMotion.x - 300, offset.y + centerOfMotion.y - 300, 600, 600);
+	        g2d.fillOval(offset.x + centerOfMotion.x - 10, offset.y + centerOfMotion.y - 10, 20, 20);
 	        
 	        //Draw Crosshair
-	        g2d.drawLine(centerOfMotion.x, 0, centerOfMotion.x, (int)(getHeight()));
-	        g2d.drawLine(0, centerOfMotion.y, (int)(getWidth()), centerOfMotion.y);
+	        g2d.drawLine(offset.x + centerOfMotion.x, offset.y,offset.x + centerOfMotion.x, offset.y + (int)(getHeight()));
+	        g2d.drawLine(offset.x, offset.y + centerOfMotion.y, offset.x + (int)(getWidth()), offset.y + centerOfMotion.y);
 	        
         }
         
@@ -336,16 +356,9 @@ public class Game extends GamePhase {
 	        
         }
         
-    	while(true) {
-    		try {
-		        for(GameMenu m : openMenus) {
-		        	m.draw(g2d);
-		        }
-		        break;
-    		} catch(ConcurrentModificationException e) {
-    			e.printStackTrace();
-    		}
-    	}
+        for(GameMenu m : openMenus) {
+        	m.draw(g2d);
+        }
     	
     	fpsCountTimer++;
     	if(fpsCountTimer >= 10) {
@@ -494,6 +507,46 @@ public class Game extends GamePhase {
     public Point getMousePosition() {
     	Point mouseLocation = super.getMousePosition();
     	return new Point((int)(mouseLocation.x / size - getWidth()*(1-size)/(2*size)), (int)(mouseLocation.y / size - getHeight()*(1-size)/(2*size)));
+    }
+    
+    public static <T extends AbstractEntity> void sort(List<T> list) {
+    	
+    	sort(list, 0, list.size() - 1);
+    	
+    }
+    
+    public static <T extends AbstractEntity> void sort(List<T> list, int lowIndex, int highIndex) {
+    	
+    	int l = lowIndex;
+    	int u = highIndex;
+    	int pivot = (int)Math.round(l / 2 + u / 2);
+    	
+    	while(l <= u) {
+    		
+    		while(list.get(l).layer < list.get(pivot).layer)
+    			l++;
+    		while(list.get(u).layer > list.get(pivot).layer)
+    			u--;
+    		
+    		if(l <= u) {
+    			
+    			T e = list.get(l);
+    			list.set(l, list.get(u));
+    			list.set(u, e);
+    			
+    			l++;
+    			u--;
+    			
+    		}
+    		
+    	}
+    	
+    	if(lowIndex < u)
+			sort(list, lowIndex, u);
+		
+		if(highIndex > l)
+			sort(list, l, highIndex);
+    	
     }
     
 }

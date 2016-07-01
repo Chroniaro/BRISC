@@ -235,7 +235,7 @@ public class Region {
         
     }
     
-    public void update() {
+    public void update(double catX, double catY) {
         
         updateLazy();
         
@@ -257,6 +257,13 @@ public class Region {
         				p.ang += p.speed;
         				p.x = ox + Math.sin(p.ang) * p.dist;
         				p.y = oy + Math.cos(p.ang) * p.dist;
+        				
+        			}
+        			
+        			if(Enemy.class.isAssignableFrom(p.getClass())) {
+        				
+        				Enemy h = (Enemy) p;
+        				h.doAIStuff(catX, catY);
         				
         			}
         			
