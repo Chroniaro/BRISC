@@ -238,6 +238,8 @@ public class Game extends GamePhase {
         //Render Space Objects
     	List<Entity> entities = world.getAllEntities(Entity.class);
     	sort(entities);
+        AffineTransform old = g2d.getTransform();
+        g2d.translate(centerOfMotion.x - x, centerOfMotion.y - y);;
     	for(Entity o : entities) {
             if(o.isVisible()) {
             	AffineTransform prev = g2d.getTransform();
@@ -246,19 +248,23 @@ public class Game extends GamePhase {
             		if(((Orbitor) o).speed >= 0)
                 		g2d.rotate(
                 				2*Math.PI - ((Orbitor) o).ang, 
-                				centerOfMotion.x + (int)(o.x - x) + (o.getSprite().getWidth() / 2), 
-                				centerOfMotion.y + (int)(o.y - y) + (o.getSprite().getHeight() / 2)
+                				(int)o.x + (o.getSprite().getWidth() / 2), 
+                				(int)o.y + (o.getSprite().getHeight() / 2)
                 		);
             		else
             			g2d.rotate(
                 				3*Math.PI - ((Orbitor) o).ang, 
-                				centerOfMotion.x + (int)(o.x - x) + (o.getSprite().getWidth() / 2), 
-                				centerOfMotion.y + (int)(o.y - y) + (o.getSprite().getHeight() / 2)
+                				(int)o.x + (o.getSprite().getWidth() / 2), 
+                				(int)o.y + (o.getSprite().getHeight() / 2)
                 		);
-            		
             	}
-            	g2d.drawImage(o.getSprite(), centerOfMotion.x + (int)(o.x - x), centerOfMotion.y + (int)(o.y - y), null);
+            	g2d.drawImage(o.getSprite(), (int)o.x, (int)o.y, null);
                 g2d.setTransform(prev);
+                if(Damageable.class.isAssignableFrom(o.getClass())) {
+                	
+                	drawHealthBar(g2d, (Damageable) o);
+                	
+                }
             }
     	}
         
@@ -266,12 +272,21 @@ public class Game extends GamePhase {
         for(Cat c: world.swarm) {
             if(c.isVisible()) {
                 if(getMousePosition().x >= centerOfMotion.x + c.offSetX)
-                    g2d.drawImage(c.getSprite(), (int)c.offSetX + centerOfMotion.x + (int)(c.x - x - c.getSprite().getWidth()/2), (int)c.offSetY + centerOfMotion.y + (int)(c.y - y - c.getSprite().getHeight()/2) + (int)c.bob, null);
+                    g2d.drawImage(c.getSprite(), (int)c.offSetX + (int)(c.x - c.getSprite().getWidth()/2), (int)c.offSetY + (int)(c.y - c.getSprite().getHeight()/2) + (int)c.bob, null);
                 else {
-                    g2d.drawImage(c.getSprite(), (int)c.offSetX + centerOfMotion.x + (int)(c.x - x - c.getSprite().getWidth()/2) + c.getSprite().getWidth(), (int)c.offSetY + centerOfMotion.y + (int)(c.y - y - c.getSprite().getHeight()/2) + (int)c.bob, -c.getSprite().getWidth(), c.getSprite().getHeight(), null);
+                    g2d.drawImage(c.getSprite(), (int)c.offSetX + (int)(c.x + c.getSprite().getWidth()/2), (int)c.offSetY + (int)(c.y - c.getSprite().getHeight()/2) + (int)c.bob, -c.getSprite().getWidth(), c.getSprite().getHeight(), null);
                 }
+                
+                if(c.getHealth() < 1) {
+                	
+                	drawHealthBar(g2d, c);
+                	
+                }
+                
             }
         }
+        
+        g2d.setTransform(old);
         
         //Scaled debug
         if(showDebugLines) {
@@ -292,7 +307,7 @@ public class Game extends GamePhase {
             
             //Draw Object Boxes
             g2d.setStroke(new BasicStroke(3));
-            AffineTransform old = g2d.getTransform();
+            old = g2d.getTransform();
         	g2d.translate(centerOfMotion.x - x, centerOfMotion.y - y);
         	g2d.setColor(Color.white);
         	for(Entity e : world.getAllEntities(Entity.class)) {
@@ -395,6 +410,27 @@ public class Game extends GamePhase {
         
     }
 
+    public static void drawHealthBar(Graphics2D g2d, Damageable d) {
+    	
+    	final Color full = Color.green;
+    	final Color empty = Color.red;
+    	final Color bound = Color.white;
+    	Rectangle surBox = d.getHitBox().getBounds();
+    	Rectangle area = new Rectangle();
+    	area.height = 10;
+    	area.width = surBox.width;
+    	area.x = surBox.x;
+    	area.y = surBox.y + surBox.height + area.height + 5;
+    	g2d.setColor(empty);
+    	g2d.fill(area);
+    	g2d.setColor(full);
+    	g2d.fillRect(area.x, area.y, (int)Math.round(d.getHealth() * area.width), area.height);
+    	g2d.setColor(bound);
+    	g2d.setStroke(new BasicStroke(3));
+    	g2d.draw(area);
+    	
+    }
+    
     @Override
     public void mouseDown(MouseEvent e) {
         
