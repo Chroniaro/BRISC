@@ -10,6 +10,8 @@ import com.brisc.Resources.ResourceManager;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
+import java.awt.image.WritableRaster;
 import java.util.*;
 import com.brisc.BRISC.menu.Button;
 import com.brisc.BRISC.worldManager.Generator;
@@ -23,14 +25,41 @@ public class Menu extends GamePhase {
 
     ArrayList<Button> buttons;
     boolean mouseDown;
+    BufferedImage image;
     
     public Menu() {
         
         buttons = new ArrayList<>();
         
-        buttons.add(new Button(400,508,204, 80, "Play"));
-        buttons.add(new Button(400,608,204, 80, "Exit"));
+        int width = 150;
+        int height = 60;
+        buttons.add(new Button(1080/2 - width/2,575, width, height, "Play"));
+        buttons.add(new Button(1080/2 - width/2,660, width, height, "Exit"));
         
+        image = ResourceManager.getResource(ResourceManager.Resources.backGround);
+        edit(image);
+        
+    }
+    
+    static void edit(BufferedImage image) {
+    	
+    	for(int x = 0; x < image.getWidth() - 1; x++)
+    		for(int y = 0; y < image.getHeight() - 1; y++) {
+    			
+    			Color value = new Color(image.getRGB(x, y));
+    			
+    			if(value.getRed() > 140)
+    				if(value.getBlue() < 80)
+    					if(value.getGreen() < 20) {
+    						
+    						value = new Color(120, 0, 0);
+    						
+    					}	
+    			
+    			image.setRGB(x, y, value.getRGB());
+    			
+    		}
+    	
     }
     
     @Override
@@ -69,26 +98,29 @@ public class Menu extends GamePhase {
     	if(getBounds() != null)
     		g2d.scale(getWidth() / 1024, getHeight() / 768);
         
-        g2d.drawImage(ResourceManager.getResource(ResourceManager.Resources.backGround), 0, 0, 1024, 768, null);
+        g2d.drawImage(image, 0, 0, 1024, 768, null);
         
-        Font font = new Font(Font.SERIF, Font.BOLD, 40);
+        Font font = new Font("Comic Sans MS", Font.BOLD, 40);
         g2d.setFont(font);
+        g2d.setStroke(new BasicStroke(10));
         
         for(Button b:buttons) {
             
+        	g2d.setColor(new Color(0, 0, 80));
+        	g2d.fillRoundRect(b.x, b.y, b.width, b.height, -1, -1);
+        	
             if(b.isHover())
                 if(mouseDown)
                     g2d.setColor(Color.magenta);
                 else
                     g2d.setColor(Color.red);
-            else
-                g2d.setColor(Color.blue);
-            
-            g2d.fillRoundRect(b.x, b.y, b.width, b.height, 20, 20);
+        
+            g2d.drawRect(b.x, b.y, b.width, b.height);
 
-            g2d.setColor(Color.white);
-            Rectangle2D r = font.getStringBounds(b.label, g2d.getFontRenderContext());
-            g2d.drawString(b.label, b.x + (int)((b.width - r.getWidth()) / 2), b.y + (int)((r.getHeight() + b.height) / 2));
+            g2d.setColor(Color.lightGray);
+            int width = g2d.getFontMetrics().stringWidth(b.label);
+            int height = g2d.getFontMetrics().getHeight();
+            g2d.drawString(b.label, b.x + (int)((b.width - width) / 2), b.y + (int)((height - 20 + b.height) / 2));
             
         }
         
