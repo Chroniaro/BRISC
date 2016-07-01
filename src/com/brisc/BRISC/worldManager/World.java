@@ -11,6 +11,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  *
@@ -25,12 +26,15 @@ public class World {
     Map<String, Region> regions;
     Generator gen;
     Rectangle loadedArea;
+    public List<Cat> swarm;
     
 	@SuppressWarnings("unchecked")
 	public World(String location, Generator generator) {
         
     	typeClasses = new HashMap<>();
     	entityTypes = new HashMap<>();
+    	
+    	swarm = new CopyOnWriteArrayList<>();
     	
     	loadedArea = new Rectangle();
     	
@@ -91,7 +95,7 @@ public class World {
     	
     }
     
-	public <T extends AbstractEntity> List<T> getAllEntities(Class<T> c) {
+	public <T extends EntityInterface> List<T> getAllEntities(Class<T> c) {
     	
     	ArrayList<T> t = new ArrayList<>();
     	
@@ -135,6 +139,13 @@ public class World {
     	regions.get(id(e)).addEntity(e);
     	
     }
+    
+    public void removeObject(AbstractEntity e) {
+		
+    	load(region(e));
+    	regions.get(id(e)).removeEntity(e);
+		
+	}
     
     public void generate(Point chunk) {
     	

@@ -13,6 +13,7 @@ import com.brisc.BRISC.menu.GameMenu;
 import com.brisc.BRISC.menu.ResourceMenu;
 import com.brisc.BRISC.entities.AbstractEntity;
 import com.brisc.BRISC.entities.Cat;
+import com.brisc.BRISC.entities.Damageable;
 import com.brisc.BRISC.entities.Enemy;
 import com.brisc.BRISC.worldManager.World;
 import com.brisc.Resources.ResourceManager;
@@ -34,7 +35,6 @@ public class Game extends GamePhase {
     
     public static boolean showDebugInfo = false;
     public static boolean showDebugLines = false;
-    ArrayList<Cat> swarm;
     private boolean bounce;
     private double bounceHeight;
     public double x, y, dx, dy;
@@ -58,16 +58,17 @@ public class Game extends GamePhase {
     	
     	openMenus = new CopyOnWriteArrayList<>();
         
-        swarm = new ArrayList<>();
-        swarm.add(new Cat(448,350,0));
-        swarm.get(0).offSetX = -10;
-        swarm.get(0).offSetY = 0;
-        swarm.get(0).setVisible(true);
+    	this.world = w;
+    	
+        world.swarm.add(new Cat(448,350,0));
+        world.swarm.get(0).offSetX = -10;
+        world.swarm.get(0).offSetY = 0;
+        world.swarm.get(0).setVisible(true);
         
-        swarm.add(new Cat(448,350,1));
-        swarm.get(1).offSetX = 50;
-        swarm.get(1).offSetY = 100;
-        swarm.get(1).setVisible(true);
+        world.swarm.add(new Cat(448,350,1));
+        world.swarm.get(1).offSetX = 50;
+        world.swarm.get(1).offSetY = 100;
+        world.swarm.get(1).setVisible(true);
         
         bounceHeight = 0;
         bounce = false;
@@ -76,7 +77,6 @@ public class Game extends GamePhase {
         
         spaceBits = ResourceManager.getResource(ResourceManager.Resources.spaceGeneric);
         
-        this.world = w;
         lastUpdate = System.currentTimeMillis();
         
     }
@@ -150,7 +150,7 @@ public class Game extends GamePhase {
         if(bounceHeight > 2 || bounceHeight < -2)
             bounce = !bounce;
         
-        for(Cat c: swarm) {
+        for(Cat c: world.swarm) {
             
             c.bob += bounceHeight;
             c.x = x;
@@ -158,13 +158,30 @@ public class Game extends GamePhase {
             
         }
                 
-        for(Cat c : swarm) {
+        for(Cat c : world.swarm) {
             
             Laser l = c.laser(mouse == 1, mouseLocation, new double[] {dx, dy});
             if(l != null) {
             	world.addObject(l);
             }
             
+        }
+        
+        for(Laser l : world.getAllEntities(Laser.class)) {
+        	
+        	l.checkCollisions(world);
+        	
+        }
+        
+        for(Damageable d : world.getAllEntities(Damageable.class)) {
+        	
+        	if(d.getHealth() <= 0) {
+        		
+        		d.die();
+        		world.removeObject(d.asEntity());
+        		
+        	}
+        	
         }
         
     }
@@ -246,7 +263,7 @@ public class Game extends GamePhase {
     	}
         
         //Render Cats
-        for(Cat c: swarm) {
+        for(Cat c: world.swarm) {
             if(c.isVisible()) {
                 if(getMousePosition().x >= centerOfMotion.x + c.offSetX)
                     g2d.drawImage(c.getSprite(), (int)c.offSetX + centerOfMotion.x + (int)(c.x - x - c.getSprite().getWidth()/2), (int)c.offSetY + centerOfMotion.y + (int)(c.y - y - c.getSprite().getHeight()/2) + (int)c.bob, null);
@@ -260,7 +277,7 @@ public class Game extends GamePhase {
         if(showDebugLines) {
             
             //Draw Cat lines
-            for(Cat c: swarm) {
+            for(Cat c: world.swarm) {
                 if(c.isVisible()) {
                     g2d.setColor(new Color(0,0,1,(float)1));
                     g2d.setStroke(new BasicStroke(1));
@@ -274,13 +291,21 @@ public class Game extends GamePhase {
             }
             
             //Draw Object Boxes
-            g2d.setColor(Color.white);
             g2d.setStroke(new BasicStroke(3));
-            for(Entity o : world.getAllEntities(Entity.class)) {
-                if(o.isVisible()) {
-                    g2d.drawRect(centerOfMotion.x + (int)(o.x - x), centerOfMotion.y + (int)(o.y - y), o.getSprite().getWidth(), o.getSprite().getHeight());
-                }
+            AffineTransform old = g2d.getTransform();
+        	g2d.translate(centerOfMotion.x - x, centerOfMotion.y - y);
+        	g2d.setColor(Color.white);
+        	for(Entity e : world.getAllEntities(Entity.class)) {
+        		g2d.drawRect((int)e.x, (int)e.y, e.getSprite().getWidth(), e.getSprite().getHeight());
+        	}
+        	g2d.setColor(Color.yellow);
+            for(Damageable d : world.getAllEntities(Damageable.class)) {
+            	g2d.draw(d.getHitBox());
             }
+            for(Cat c : world.swarm) {
+            	g2d.draw(c.getHitBox());
+            }
+            g2d.setTransform(old);
                     
             //Draw Chunk Borders
             g2d.setColor(Color.green);

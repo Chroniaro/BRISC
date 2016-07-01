@@ -5,6 +5,7 @@
  */
 package com.brisc.BRISC.entities;
 
+import java.awt.Point;
 import java.util.HashMap;
 import com.brisc.BRISC.worldManager.*;
 
@@ -12,7 +13,7 @@ import com.brisc.BRISC.worldManager.*;
  *
  * @author Zac
  */
-public abstract class AbstractEntity {
+public abstract class AbstractEntity implements EntityInterface {
     
     public double x, y;
     public double layer = 0;
@@ -136,6 +137,18 @@ public abstract class AbstractEntity {
     public final Region getRegion() {
     	
     	return null;
+    	
+    }
+    
+    public Point getPos() {
+    	
+    	return new Point((int) this.x, (int) this.y);
+    	
+    }
+    
+    public AbstractEntity asEntity() {
+    	
+    	return this;
     	
     }
     

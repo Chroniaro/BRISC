@@ -264,6 +264,9 @@ public class Region {
         				
         				Enemy h = (Enemy) p;
         				h.doAIStuff(catX, catY);
+        				if(h.laser != null)
+        					world.addObject(h.laser);
+        				h.laser = null;
         				
         			}
         			
@@ -288,6 +291,12 @@ public class Region {
 		
 		this.entities.remove(e);
 		world.addObject(e);
+		
+	}
+
+	public void removeEntity(AbstractEntity e) {
+		
+		this.entities.remove(e);
 		
 	}
     

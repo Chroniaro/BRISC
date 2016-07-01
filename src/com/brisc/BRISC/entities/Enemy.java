@@ -1,14 +1,16 @@
 package com.brisc.BRISC.entities;
 
 import java.awt.Point;
+import java.awt.Polygon;
 import java.util.*;
 
 import com.brisc.Resources.ResourceManager;
 
-public class Enemy extends Orbitor {
+public class Enemy extends Orbitor implements Damageable {
 	
 	int phase;
 	int preferredDist = 150;
+	double health = 1;
 	public static int enemiesOnCats = 0;
 	int placeOnCat = -1;
 	boolean onCat = false;
@@ -16,6 +18,8 @@ public class Enemy extends Orbitor {
 	final static Map<Integer, Boolean> takenSpots = new HashMap<>();
 	Point homeSystem;
 	final static int protectiveZone = 2000;
+	double shotTime = 100;
+	public Enemy_Laser laser;
 
 	public Enemy(double x, double y, double dist, double ang, double speed, Point homeSystem) {
 		
@@ -118,7 +122,7 @@ public class Enemy extends Orbitor {
 		
 		if(onCat) {
 			
-			if(dist > preferredDist + ((enemiesOnCats + 1) * betweenDist)) {
+			if(dist > preferredDist + ((enemiesOnCats + 1) * betweenDist) || phase != 1) {
 				
 				onCat = false;
 				takenSpots.put(placeOnCat, false);
@@ -128,7 +132,7 @@ public class Enemy extends Orbitor {
 			}
 			
 			if(placeOnCat > 0)
-				if(!(takenSpots.containsKey(placeOnCat - 1) && takenSpots.get(placeOnCat - 1))) {
+				if(!(takenSpots.containsKey(placeOnCat - 1) && takenSpots.get(placeOnCat - 1)) && phase == 1) {
 					
 					takenSpots.put(placeOnCat, false);
 					takenSpots.put(placeOnCat - 1, true);
@@ -136,7 +140,11 @@ public class Enemy extends Orbitor {
 					
 				}
 			
+			shoot(new Point((int)catX, (int)catY));
+			
 		} else {
+			
+			shotTime = Math.min(100, shotTime + 0.5);
 			
 			if(dist < preferredDist + ((enemiesOnCats + 1) * betweenDist)) {
 				
@@ -146,6 +154,28 @@ public class Enemy extends Orbitor {
 				enemiesOnCats += 1;
 				
 			}
+			
+		}
+		
+	}
+	
+	void shoot(Point exactTarget) {
+		
+		Point target = new Point(exactTarget.x + (int)(Math.random() * 100), exactTarget.y + (int)(Math.random() * 100));
+		
+		shotTime--;
+		
+		if(shotTime <= 0) {
+			
+			shotTime = 20 + (int)Math.round(Math.random() * 100);
+			
+			double ldx, ldy;
+			Point eye = new Point((int) (this.x + 20), (int) (this.y + 20));
+			ldx = (target.x - eye.x) / target.distance(eye);
+			ldy = (target.y - eye.y) / target.distance(eye);
+			
+			this.laser = new Enemy_Laser(eye.x, eye.y, ldx * 30, ldy * 30, ldx * 12, ldy * 12);
+			
 			
 		}
 		
@@ -187,6 +217,55 @@ public class Enemy extends Orbitor {
 			return Math.atan(offsetX / offsetY);
 		else
 			return Math.PI + Math.atan(offsetX / offsetY);
+		
+	}
+
+	@Override
+	public void takeDamage(double amount) {
+		
+		health -= amount;
+		
+	}
+
+	@Override
+	public void heal(double amount) {
+		
+		health += amount;
+		
+	}
+
+	@Override
+	public double getHealth() {
+		
+		return health;
+		
+	}
+
+	@Override
+	public void die() {
+		
+		if(onCat) {
+			
+			onCat = false;
+			takenSpots.put(placeOnCat, false);
+			placeOnCat = -1;
+			enemiesOnCats -= 1;
+			
+		}
+		this.setVisible(false);
+		
+	}
+
+	@Override
+	public Polygon getHitBox() {
+		
+		Polygon p = new Polygon();
+		p.addPoint((int)this.x, (int)this.y);
+		p.addPoint((int)this.x + 64, (int)this.y);
+		p.addPoint((int)this.x + 64, (int)this.y + 64);
+		p.addPoint((int)this.x, (int)this.y + 64);
+		
+		return p;
 		
 	}
 

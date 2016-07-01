@@ -9,6 +9,10 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.HashMap;
 
+import com.brisc.BRISC.worldManager.World;
+
+import javafx.scene.shape.Line;
+
 /**
  *
  * @author Zac
@@ -17,9 +21,9 @@ public class Laser extends Entity {
     
 	double sx, sy;
 	
-    public Laser(double x, double y, double dx, double dy, double mx, double my) {
+    public Laser(double x, double y, double dx, double dy, double mx, double my, Color color) {
         
-        super(getImage((int)dx, (int)dy) , x, y);
+        super(getImage((int)dx, (int)dy, color) , x, y);
         this.dx = mx;
         this.dy = my;
         this.setVisible(true);
@@ -29,13 +33,18 @@ public class Laser extends Entity {
         
     }
     
-    static BufferedImage getImage(int dx, int dy) {
+    public Laser(double x, double y, double dx, double dy, double mx, double my) {
+    	
+    	this(x, y, dx, dy, mx, my, Color.red);
+    	
+    }
+    
+    static BufferedImage getImage(int dx, int dy, Color laserColor) {
         
         BufferedImage img = new BufferedImage(Math.abs(dx) + 5, Math.abs(dy) + 5, BufferedImage.TYPE_4BYTE_ABGR);
         Graphics2D g2d = img.createGraphics();
         g2d.setStroke(new BasicStroke(5));
-        g2d.setColor(Color.white);
-        g2d.setColor(Color.red);
+        g2d.setColor(laserColor);
         int x1, x2, y1, y2;
         if(dx > 0) {
             x1 = 0;
@@ -94,6 +103,26 @@ public class Laser extends Entity {
     	e.setVisible(Boolean.parseBoolean(sections[0].get("visible")));
     	
     	return e;
+    	
+    }
+    
+    public void checkCollisions(World w) {
+    	
+    	Rectangle thisRectangle = new Rectangle((int)this.x, (int)this.y, (int)this.sx, (int)this.sy);
+    	
+    	for(Damageable d : w.getAllEntities(Damageable.class)) {
+    		
+    		Polygon box = d.getHitBox();
+    		if(box.intersects(thisRectangle)) 
+    			if(box.contains(this.x, this.y) || box.contains(this.x + sx, this.y + sy)) {
+    			
+	    			d.takeDamage(0.2);
+	    			this.setVisible(false);
+	    			w.removeObject(this);
+	    			
+	    		}
+    		
+    	}
     	
     }
     

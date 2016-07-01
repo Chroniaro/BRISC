@@ -8,6 +8,7 @@ package com.brisc.BRISC.entities;
 import com.brisc.BRISC.states.Game;
 import com.brisc.Resources.ResourceManager;
 import java.awt.Point;
+import java.awt.Polygon;
 import java.awt.image.BufferedImage;
 import java.util.HashMap;
 
@@ -16,11 +17,12 @@ import java.util.HashMap;
  * @author Zac
  */
 
-public class Cat extends Entity {
+public class Cat extends Entity implements Damageable {
     
     Point eye;
     
     public double bob = 0;
+    double health = 1;
     int shotTimer = 0;
     public double offSetX;
     public double offSetY;
@@ -136,5 +138,46 @@ public class Cat extends Entity {
     	return e;
     	
     }
+
+	@Override
+	public void takeDamage(double amount) {
+		
+		health -= amount;
+		
+	}
+
+	@Override
+	public void heal(double amount) {
+		
+		health += amount;
+		
+	}
+
+	@Override
+	public double getHealth() {
+		
+		return health;
+		
+	}
+
+	@Override
+	public void die() {
+		
+		this.setVisible(false);
+		
+	}
+
+	@Override
+	public Polygon getHitBox() {
+		
+		Polygon p = new Polygon();
+		p.addPoint(this.getApparentLocationInSpace().x, this.getApparentLocationInSpace().y);
+		p.addPoint(this.getApparentLocationInSpace().x + 64, this.getApparentLocationInSpace().y);
+		p.addPoint(this.getApparentLocationInSpace().x + 64, this.getApparentLocationInSpace().y + 64);
+		p.addPoint(this.getApparentLocationInSpace().x, this.getApparentLocationInSpace().y + 64);
+		
+		return p;
+		
+	}
 	
 }
