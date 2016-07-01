@@ -7,10 +7,17 @@ package com.brisc.BRISC.states;
 
 import com.brisc.BRISC.BaconRidingIntelligentSpaceCats;
 import com.brisc.Resources.ResourceManager;
+import com.sun.org.apache.bcel.internal.util.ClassLoader;
+
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
+
+import javax.imageio.ImageIO;
+
 import com.brisc.BRISC.menu.Button;
 import com.brisc.BRISC.worldManager.Generator;
 import com.brisc.BRISC.worldManager.World;
@@ -35,29 +42,7 @@ public class Menu extends GamePhase {
         buttons.add(new Button(1080/2 - width/2,660, width, height, "Exit"));
         
         image = ResourceManager.getResource(ResourceManager.Resources.backGround);
-        edit(image);
         
-    }
-    
-    static void edit(BufferedImage image) {
-    	
-    	for(int x = 0; x < image.getWidth() - 1; x++)
-    		for(int y = 0; y < image.getHeight() - 1; y++) {
-    			
-    			Color value = new Color(image.getRGB(x, y));
-    			
-    			if(value.getRed() > 140)
-    				if(value.getBlue() < 80)
-    					if(value.getGreen() < 20) {
-    						
-    						value = new Color(120, 0, 0);
-    						
-    					}	
-    			
-    			image.setRGB(x, y, value.getRGB());
-    			
-    		}
-    	
     }
     
     @Override
