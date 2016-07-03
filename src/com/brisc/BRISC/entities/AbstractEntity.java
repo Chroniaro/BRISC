@@ -108,7 +108,11 @@ public abstract class AbstractEntity implements EntityInterface {
      */
     public static AbstractEntity load(HashMap<String,String> heading, HashMap<String, String>[] sections) {
     	
-    	AbstractEntity e = new AbstractEntity() {};
+    	AbstractEntity e = new AbstractEntity() {
+
+			@Override
+			public void update(World w, Point location) {}
+		};
     	
     	e.x = Double.parseDouble(sections[0].get("x"));
     	e.y = Double.parseDouble(sections[0].get("y"));
@@ -151,5 +155,7 @@ public abstract class AbstractEntity implements EntityInterface {
     	return this;
     	
     }
+    
+    public abstract void update(World w, Point location);
     
 }

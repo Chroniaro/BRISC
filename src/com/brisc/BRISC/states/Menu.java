@@ -7,17 +7,10 @@ package com.brisc.BRISC.states;
 
 import com.brisc.BRISC.BaconRidingIntelligentSpaceCats;
 import com.brisc.Resources.ResourceManager;
-import com.sun.org.apache.bcel.internal.util.ClassLoader;
-
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
 import java.util.*;
-
-import javax.imageio.ImageIO;
-
 import com.brisc.BRISC.menu.Button;
 import com.brisc.BRISC.worldManager.Generator;
 import com.brisc.BRISC.worldManager.World;
@@ -90,7 +83,7 @@ public class Menu extends GamePhase {
         for(Button b:buttons) {
             
         	g2d.setColor(new Color(0, 0, 80));
-        	g2d.fillRoundRect(b.x, b.y, b.width, b.height, -1, -1);
+        	g2d.fillRect(b.x, b.y, b.width, b.height);
         	
             if(b.isHover())
                 if(mouseDown)

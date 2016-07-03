@@ -4,6 +4,7 @@ import java.awt.Point;
 import java.awt.Polygon;
 import java.util.*;
 
+import com.brisc.BRISC.worldManager.World;
 import com.brisc.Resources.ResourceManager;
 
 public class Enemy extends Orbitor implements Damageable {
@@ -35,7 +36,7 @@ public class Enemy extends Orbitor implements Damageable {
 		
 	}
 	
-	public void doAIStuff(double catX, double catY) {
+	public void doAIStuff(double catX, double catY, World w) {
 		
 		final double dist = distanceFrom(catX, catY);
 		final double homeDist = distanceFrom(homeSystem.x, homeSystem.y);
@@ -140,7 +141,7 @@ public class Enemy extends Orbitor implements Damageable {
 					
 				}
 			
-			shoot(new Point((int)catX, (int)catY));
+			shoot(new Point((int)catX, (int)catY), w);
 			
 		} else {
 			
@@ -159,7 +160,7 @@ public class Enemy extends Orbitor implements Damageable {
 		
 	}
 	
-	void shoot(Point exactTarget) {
+	void shoot(Point exactTarget, World w) {
 		
 		Point target = new Point(exactTarget.x + (int)(Math.random() * 100), exactTarget.y + (int)(Math.random() * 100));
 		
@@ -174,8 +175,8 @@ public class Enemy extends Orbitor implements Damageable {
 			ldx = (target.x - eye.x) / target.distance(eye);
 			ldy = (target.y - eye.y) / target.distance(eye);
 			
-			this.laser = new Enemy_Laser(eye.x, eye.y, ldx * 30, ldy * 30, ldx * 12, ldy * 12);
-			
+			Laser laser = new Enemy_Laser(eye.x, eye.y, ldx * 30, ldy * 30, ldx * 12, ldy * 12);
+			w.addObject(laser);
 			
 		}
 		
@@ -266,6 +267,14 @@ public class Enemy extends Orbitor implements Damageable {
 		p.addPoint((int)this.x, (int)this.y + 64);
 		
 		return p;
+		
+	}
+
+	@Override
+	public void update(World w, Point location) {
+		
+		super.update(w, location);
+		doAIStuff(location.x, location.y, w);
 		
 	}
 

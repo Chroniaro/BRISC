@@ -63,11 +63,13 @@ public class Game extends GamePhase {
         world.swarm.get(0).offSetX = -10;
         world.swarm.get(0).offSetY = 0;
         world.swarm.get(0).setVisible(true);
+        world.swarm.get(0).screenLocation = new Point(0, 0);
         
         world.swarm.add(new Cat(448,350,1));
         world.swarm.get(1).offSetX = 50;
         world.swarm.get(1).offSetY = 100;
         world.swarm.get(1).setVisible(true);
+        world.swarm.get(1).screenLocation = new Point(0, 0);
         
         bounceHeight = 0;
         bounce = false;
@@ -139,7 +141,7 @@ public class Game extends GamePhase {
         		(int)loadedChunkSpace.getWidth(), (int)loadedChunkSpace.getHeight()
         ));
         
-        world.update(x, y);
+        world.update((int)x, (int)y);
         
         if(bounce)
             bounceHeight += .1;
@@ -149,15 +151,14 @@ public class Game extends GamePhase {
         if(bounceHeight > 2 || bounceHeight < -2)
             bounce = !bounce;
         
-        for(Cat c: world.swarm) {
+        Cat[] list = new Cat[world.swarm.size()];
+        world.swarm.toArray(list);
+        for(Cat c: list) {
             
+        	c.screenLocation.x = (int) x;
+        	c.screenLocation.y = (int) y;
+        	
             c.bob += bounceHeight;
-            c.x = x;
-            c.y = y;
-            
-        }
-                
-        for(Cat c : world.swarm) {
             
             Laser l = c.laser(mouse == 1, mouseLocation, new double[] {dx, dy});
             if(l != null) {
@@ -189,6 +190,9 @@ public class Game extends GamePhase {
     public void render(Graphics2D g2d) {
         
     	if(getBounds() == null) return;
+    	
+    	List<Entity> entities = world.getAllEntities(Entity.class);
+    	sort(entities);
     	
     	Point offset = new Point((int)((getWidth() - 1024) / 2), (int) ((getHeight() - 768) / 2));
     	
@@ -235,8 +239,6 @@ public class Game extends GamePhase {
         }
 
         //Render Space Objects
-    	List<Entity> entities = world.getAllEntities(Entity.class);
-    	sort(entities);
         AffineTransform old = g2d.getTransform();
         g2d.translate(centerOfMotion.x - x, centerOfMotion.y - y);;
     	for(Entity o : entities) {
@@ -267,16 +269,21 @@ public class Game extends GamePhase {
             }
     	}
         
+    	g2d.setTransform(old);
+    	
         //Render Cats
-        for(Cat c: world.swarm) {
+    	Cat[] l = new Cat[world.swarm.size()];
+    	world.swarm.toArray(l);
+        for(Cat c: l) {
             if(c.isVisible()) {
                 if(getMousePosition().x >= centerOfMotion.x + c.offSetX)
-                    g2d.drawImage(c.getSprite(), (int)c.offSetX + (int)(c.x - c.getSprite().getWidth()/2), (int)c.offSetY + (int)(c.y - c.getSprite().getHeight()/2) + (int)c.bob, null);
+                    g2d.drawImage(c.getSprite(), centerOfMotion.x + (int)c.offSetX - (int)(c.getSprite().getWidth()/2), centerOfMotion.y + (int)c.offSetY - (int)(c.getSprite().getHeight()/2) + (int)c.bob, null);
                 else {
-                    g2d.drawImage(c.getSprite(), (int)c.offSetX + (int)(c.x + c.getSprite().getWidth()/2), (int)c.offSetY + (int)(c.y - c.getSprite().getHeight()/2) + (int)c.bob, -c.getSprite().getWidth(), c.getSprite().getHeight(), null);
+                    g2d.drawImage(c.getSprite(), centerOfMotion.x + (int)c.offSetX + (int)(c.getSprite().getWidth()/2), centerOfMotion.y + (int)c.offSetY - (int)(c.getSprite().getHeight()/2) + (int)c.bob, -c.getSprite().getWidth(), c.getSprite().getHeight(), null);
                 }
                 
                 if(c.getHealth() < 1) {
+                	
                 	
                 	drawHealthBar(g2d, c);
                 	
@@ -284,8 +291,6 @@ public class Game extends GamePhase {
                 
             }
         }
-        
-        g2d.setTransform(old);
         
         //Scaled debug
         if(showDebugLines) {
@@ -309,7 +314,7 @@ public class Game extends GamePhase {
             old = g2d.getTransform();
         	g2d.translate(centerOfMotion.x - x, centerOfMotion.y - y);
         	g2d.setColor(Color.white);
-        	for(Entity e : world.getAllEntities(Entity.class)) {
+        	for(Entity e : entities) {
         		g2d.drawRect((int)e.x, (int)e.y, e.getSprite().getWidth(), e.getSprite().getHeight());
         	}
         	g2d.setColor(Color.yellow);
@@ -375,7 +380,7 @@ public class Game extends GamePhase {
 	        		"",
 	        		"View Scale: " + size,
 	        		"",
-	        		"Entities: " + world.getAllEntities(Entity.class).size(),
+	        		"Entities: " + entities.size(),
 	        		"FPS: " + fps
 	        };
 	        
@@ -413,7 +418,7 @@ public class Game extends GamePhase {
     	
     	final Color full = Color.green;
     	final Color empty = Color.red;
-    	final Color bound = Color.white;
+    	final Color bound = Color.red;
     	Rectangle surBox = d.getHitBox().getBounds();
     	Rectangle area = new Rectangle();
     	area.height = 10;
@@ -424,6 +429,27 @@ public class Game extends GamePhase {
     	g2d.fill(area);
     	g2d.setColor(full);
     	g2d.fillRect(area.x, area.y, (int)Math.round(d.getHealth() * area.width), area.height);
+    	g2d.setColor(bound);
+    	g2d.setStroke(new BasicStroke(3));
+    	g2d.draw(area);
+    	
+    }
+    
+    public static void drawHealthBar(Graphics2D g2d, Cat c) {
+    	
+    	final Color full = Color.green;
+    	final Color empty = Color.red;
+    	final Color bound = Color.white;
+    	Rectangle surBox = c.getHitBox().getBounds();
+    	Rectangle area = new Rectangle();
+    	area.height = 10;
+    	area.width = surBox.width;
+    	area.x = (int) c.offSetX + centerOfMotion.x - surBox.width / 2;
+    	area.y = (int) c.offSetY + centerOfMotion.y + surBox.height / 2 + area.height + 5;
+    	g2d.setColor(empty);
+    	g2d.fill(area);
+    	g2d.setColor(full);
+    	g2d.fillRect(area.x, area.y, (int)Math.round(c.getHealth() * area.width), area.height);
     	g2d.setColor(bound);
     	g2d.setStroke(new BasicStroke(3));
     	g2d.draw(area);

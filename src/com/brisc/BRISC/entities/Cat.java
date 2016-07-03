@@ -6,6 +6,7 @@
 package com.brisc.BRISC.entities;
 
 import com.brisc.BRISC.states.Game;
+import com.brisc.BRISC.worldManager.World;
 import com.brisc.Resources.ResourceManager;
 import java.awt.Point;
 import java.awt.Polygon;
@@ -20,6 +21,7 @@ public class Cat extends Entity implements Damageable {
     
     Point eye;
     
+    public Point screenLocation;
     public double bob = 0;
     double health = 1;
     int shotTimer = 0;
@@ -89,8 +91,8 @@ public class Cat extends Entity implements Damageable {
     public Point getApparentLocationInSpace() {
         
         double lx,ly;
-        lx = offSetX + x - (getSprite().getWidth()/2);
-        ly = offSetY + y - (getSprite().getHeight()/2) + bob;
+        lx = screenLocation.x + offSetX - (getSprite().getWidth()/2);
+        ly = screenLocation.y + offSetY - (getSprite().getHeight()/2) + bob;
             
         return new Point((int)lx, (int)ly);
         
@@ -176,6 +178,13 @@ public class Cat extends Entity implements Damageable {
 		p.addPoint(this.getApparentLocationInSpace().x, this.getApparentLocationInSpace().y + 64);
 		
 		return p;
+		
+	}
+
+	@Override
+	public void update(World w, Point location) {
+		
+		super.update(w, location);
 		
 	}
 	

@@ -50,7 +50,7 @@ public abstract class ResourceManager {
                     return ImageIO.read(getResource("images/cats/BRISC Purple.png"));
                     
                 case backGround:
-                    return ImageIO.read(getResource("images/BackGround.png"));
+                    return ImageIO.read(getResource("images/Background.png"));
                     
                 case spaceGeneric:
                     return ImageIO.read(getResource("images/SpaceTile.png"));

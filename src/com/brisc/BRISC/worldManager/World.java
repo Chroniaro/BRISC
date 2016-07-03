@@ -34,7 +34,7 @@ public class World {
     	typeClasses = new HashMap<>();
     	entityTypes = new HashMap<>();
     	
-    	swarm = new CopyOnWriteArrayList<>();
+    	swarm = Collections.synchronizedList(new ArrayList<>());
     	
     	loadedArea = new Rectangle();
     	
@@ -69,12 +69,19 @@ public class World {
     	
     }
 	
-	public void update(double catX, double catY) {
+	public void update(int catX, int catY) {
 		
 		for(int x = loadedArea.x; x < loadedArea.x + loadedArea.width; x++)
         	for(int y = loadedArea.y; y < loadedArea.y + loadedArea.height; y++) {
         	
-        		regions.get(id(x, y)).update(catX, catY);
+        		final Region r = regions.get(id(x, y));
+        		synchronized(r.entities) {
+        			
+        			Object[] l = r.entities.toArray();
+        			r.update(catX, catY);
+	        		for(Object e : l)
+	        			((AbstractEntity) e).update(this, new Point(catX, catY));
+        		}
         		
         	}
 		
@@ -97,15 +104,15 @@ public class World {
     
 	public <T extends EntityInterface> List<T> getAllEntities(Class<T> c) {
     	
-    	ArrayList<T> t = new ArrayList<>();
-    	
-    	for(AbstractEntity e : getAllEntities()) {
-    		
-    		if(c.isAssignableFrom(e.getClass())) t.add(c.cast(e));
-    		
-    	}
-    	
-    	return t;
+		List<T> t = new ArrayList<>();
+		for(AbstractEntity e : getAllEntities()) {
+			
+			if(c.isAssignableFrom(e.getClass()))
+				t.add(c.cast(e));
+			
+		}
+		
+		return t;
     	
     }
     

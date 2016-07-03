@@ -8,7 +8,6 @@ package com.brisc.BRISC.worldManager;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.brisc.BRISC.entities.*;
 
@@ -29,7 +28,7 @@ public class Region {
 		this.world = world;
 		this.x = x;
 		this.y = y;
-		entities = new CopyOnWriteArrayList<>();
+		entities = Collections.synchronizedList(new ArrayList<>());
 		
 	}
 	
@@ -167,10 +166,13 @@ public class Region {
         		Entity.WL_END_REGION_DATA
         ;
         
-        for(AbstractEntity e : entities) {
+        synchronized(entities) {
         	
-        	s += Entity.WL_ENTITY + e.getSaveData().trim();
-        	
+	        for(AbstractEntity e : entities) {
+	        	
+	        	s += Entity.WL_ENTITY + e.getSaveData().trim();
+	        	
+	        }
         }
         
         try {
@@ -233,51 +235,32 @@ public class Region {
     
     public void updateLazy() {
         
+    	
+    	
     }
     
     public void update(double catX, double catY) {
         
         updateLazy();
-        
-        for (AbstractEntity e : entities) {
+        synchronized(this.entities) {
         	
-        	if(Entity.class.isAssignableFrom(e.getClass())) {
-        		
-        		Entity e2 = (Entity) e;
-        		e2.x += e2.dx;
-        		e2.y += e2.dy;
-        		
-        		if(Orbitor.class.isAssignableFrom(e.getClass())) {
-        			
-        			Orbitor p = (Orbitor) e;
-        			if(Math.abs(p.speed) > 0) {
-        				
-        				double ox = p.x - Math.sin(p.ang) * p.dist;
-        				double oy = p.y - Math.cos(p.ang) * p.dist;
-        				p.ang += p.speed;
-        				p.x = ox + Math.sin(p.ang) * p.dist;
-        				p.y = oy + Math.cos(p.ang) * p.dist;
-        				
-        			}
-        			
-        			if(Enemy.class.isAssignableFrom(p.getClass())) {
-        				
-        				Enemy h = (Enemy) p;
-        				h.doAIStuff(catX, catY);
-        				if(h.laser != null)
-        					world.addObject(h.laser);
-        				h.laser = null;
-        				
-        			}
-        			
-        		}
-        		
-        	}
-        	
-			if(e.x < this.x || e.x > this.x + World.regionsize || e.y < this.y || e.y > this.y + World.regionsize)
-				transferEntity(e);
-				
-		}
+        	List<AbstractEntity> toTransfer = new ArrayList<>();
+        	int x = 0;
+        	Iterator<AbstractEntity> i = entities.iterator();
+	        while(i.hasNext()) {
+				AbstractEntity e = i.next();
+				if(e.x < this.x || e.x > this.x + World.regionsize || e.y < this.y || e.y > this.y + World.regionsize)
+					toTransfer.add(e);
+				x++;
+			}
+	        for(AbstractEntity n : toTransfer) {
+	        	
+	        	if(entities.contains(n))
+	        		transferEntity(n);
+	        	
+	        }
+	        
+        }
         
     }
 
@@ -289,7 +272,7 @@ public class Region {
 	
 	public void transferEntity(AbstractEntity e) {
 		
-		this.entities.remove(e);
+		removeEntity(e);
 		world.addObject(e);
 		
 	}

@@ -20,7 +20,11 @@ public class Enemy_Laser extends Laser {
 		
 		Rectangle thisRectangle = new Rectangle((int)this.x, (int)this.y, (int)this.sx, (int)this.sy);
     	
-    	for(Cat c : w.swarm) {
+		Object[] l = w.swarm.toArray();
+		
+    	for(Object o : l) {
+    		
+    		Cat c = (Cat) o;
     		
     		Polygon box = c.getHitBox();
     		if(box.intersects(thisRectangle)) 

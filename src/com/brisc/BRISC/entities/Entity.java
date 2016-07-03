@@ -9,6 +9,8 @@ import java.awt.*;
 import java.awt.image.*;
 import java.util.HashMap;
 
+import com.brisc.BRISC.worldManager.World;
+
 /**
  *
  * @author Zac
@@ -141,5 +143,13 @@ public abstract class Entity extends AbstractEntity {
     public static String getType() {
     	return "AbstractEntity";
     }
+    
+    @Override
+	public void update(World w, Point location) {
+		
+    	x += dx;
+    	y += dy;
+		
+	}
     
 }
