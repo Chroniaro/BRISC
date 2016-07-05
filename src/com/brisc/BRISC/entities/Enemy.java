@@ -4,29 +4,32 @@ import java.awt.Point;
 import java.awt.Polygon;
 import java.util.*;
 
+import com.brisc.BRISC.states.Game;
 import com.brisc.BRISC.worldManager.World;
 import com.brisc.Resources.ResourceManager;
 
 public class Enemy extends Orbitor implements Damageable {
 	
 	int phase;
-	int preferredDist = 150;
+	int preferredDist = 250;
 	double health = 1;
 	public static int enemiesOnCats = 0;
 	int placeOnCat = -1;
 	boolean onCat = false;
-	final static int betweenDist = 100;
+	final static int betweenDist = 75;
 	final static Map<Integer, Boolean> takenSpots = new HashMap<>();
 	Point homeSystem;
 	final static int protectiveZone = 2000;
 	double shotTime = 100;
 	public Enemy_Laser laser;
+	Random rand;
 
 	public Enemy(double x, double y, double dist, double ang, double speed, Point homeSystem) {
 		
 		super(ResourceManager.getResource(ResourceManager.Resources.enemyBasic), x, y, dist, ang, speed);
 		phase = 0;
 		this.homeSystem = homeSystem;
+		rand = new Random();
 		
 	}
 	
@@ -46,7 +49,7 @@ public class Enemy extends Orbitor implements Damageable {
 		
 		if(phase == 0) {
 			
-			if(dist < 500 && angOffset < Math.PI / 8) {
+			if((dist < 800 && angOffset < Math.PI / 6) || getHealth() < 1) {
 				
 				phase = 1;
 				
@@ -175,7 +178,7 @@ public class Enemy extends Orbitor implements Damageable {
 			ldx = (target.x - eye.x) / target.distance(eye);
 			ldy = (target.y - eye.y) / target.distance(eye);
 			
-			Laser laser = new Enemy_Laser(eye.x, eye.y, ldx * 30, ldy * 30, ldx * 12, ldy * 12);
+			Laser laser = new Enemy_Laser(eye.x, eye.y, ldx * 30, ldy * 30, ldx * 8, ldy * 8);
 			w.addObject(laser);
 			
 		}
@@ -243,7 +246,7 @@ public class Enemy extends Orbitor implements Damageable {
 	}
 
 	@Override
-	public void die() {
+	public void die(Game g) {
 		
 		if(onCat) {
 			
@@ -254,6 +257,9 @@ public class Enemy extends Orbitor implements Damageable {
 			
 		}
 		this.setVisible(false);
+		
+		g.catFood += Math.round(20 * Math.pow(rand.nextGaussian(), 2));
+		g.catNip += Math.max(Math.floor(Math.pow(rand.nextGaussian(), 2) - 2), 0 );
 		
 	}
 

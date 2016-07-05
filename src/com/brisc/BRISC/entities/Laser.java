@@ -6,6 +6,7 @@
 package com.brisc.BRISC.entities;
 
 import java.awt.*;
+import java.awt.geom.Line2D;
 import java.awt.image.BufferedImage;
 import java.util.HashMap;
 import com.brisc.BRISC.worldManager.World;
@@ -106,19 +107,43 @@ public class Laser extends Entity {
     
     public void checkCollisions(World w) {
     	
-    	Rectangle thisRectangle = new Rectangle((int)this.x, (int)this.y, (int)this.sx, (int)this.sy);
+    	Line2D.Double thisLine = new Line2D.Double(this.x, this.y, this.x + this.sx, this.y + this.sy);
     	
     	for(Damageable d : w.getAllEntities(Damageable.class)) {
     		
     		Polygon box = d.getHitBox();
-    		if(box.intersects(thisRectangle)) 
-    			if(box.contains(this.x, this.y) || box.contains(this.x + sx, this.y + sy)) {
+    		if(checkIntersect(thisLine, box)) {
     			
-	    			d.takeDamage(0.2);
-	    			this.setVisible(false);
-	    			w.removeObject(this);
-	    			
-	    		}
+    			d.takeDamage(0.1);
+    			w.removeObject(this);
+    			
+    		}
+    		
+    	}
+    	
+    }
+    
+    public static boolean checkIntersect(Line2D.Double line, Polygon box) {
+    	
+    	if(line.intersects(box.getBounds2D())) {
+    		
+    		if(box.contains(line.getP1()) && box.contains(line.getP2()))
+    			return true;
+    		else if(!(box.contains(line.getP1()) || box.contains(line.getP2())))
+    			return false;
+    		
+    		for(int i = 0; i < box.npoints - 1; i++)
+    			if(line.intersectsLine(box.xpoints[i], box.ypoints[i], box.xpoints[i + 1], box.ypoints[i + 1]))
+    				return true;
+    		
+    		if(line.intersectsLine(box.xpoints[0], box.ypoints[0], box.xpoints[box.npoints - 1], box.ypoints[box.npoints - 1]))
+				return true;
+    		
+    		return false;
+    		
+    	} else {
+    		
+    		return false;
     		
     	}
     	

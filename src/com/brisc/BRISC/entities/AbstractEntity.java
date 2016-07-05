@@ -13,7 +13,7 @@ import com.brisc.BRISC.worldManager.*;
  *
  * @author Zac
  */
-public abstract class AbstractEntity implements EntityInterface {
+public abstract class AbstractEntity implements EntityInterface, Comparable<AbstractEntity> {
     
     public double x, y;
     public double layer = 0;
@@ -153,6 +153,13 @@ public abstract class AbstractEntity implements EntityInterface {
     public AbstractEntity asEntity() {
     	
     	return this;
+    	
+    }
+    
+    @Override
+    public int compareTo(AbstractEntity o) {
+    	
+    	return ((Double)this.layer).compareTo(o.layer);
     	
     }
     

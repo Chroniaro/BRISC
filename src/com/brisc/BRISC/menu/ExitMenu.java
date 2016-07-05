@@ -13,9 +13,9 @@ public class ExitMenu extends GameMenu {
 
 	Button test;
 	
-	public ExitMenu(Game g) {
+	public ExitMenu(Game g, int width, int height) {
 		
-		super(g);
+		super(g, width, height);
 		
 		test = new Button(10, 10, 100, 30, "Exit");
 		this.objects.add(test);

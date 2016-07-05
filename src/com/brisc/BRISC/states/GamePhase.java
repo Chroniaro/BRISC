@@ -24,10 +24,17 @@ public abstract class GamePhase {
     
     public void mouseDown(MouseEvent e) {}
     public void mouseUp(MouseEvent e) {}
+    public void mouseIn(MouseEvent e) {}
+    public void mouseOut(MouseEvent e) {}
     public void keyDown(KeyEvent e) {}
     public void keyUp(KeyEvent e) {}
     public void mouseWheelUp(MouseWheelEvent e) {}
     public void mouseWheelDown(MouseWheelEvent e) {}
+    public boolean holdMouse() {
+    	
+    	return false;
+    	
+    }
     
     public Cursor getCursor() {
         
@@ -87,7 +94,7 @@ public abstract class GamePhase {
             } catch(NullPointerException e) {
             	bounds = new Rectangle(0,0,1,1);
             } catch(Exception e) {
-                System.out.println(e.getMessage() + " GamePhase, 86");
+                e.printStackTrace();
             }
         
     }

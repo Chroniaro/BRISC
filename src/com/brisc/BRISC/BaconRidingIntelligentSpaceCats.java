@@ -8,8 +8,13 @@ package com.brisc.BRISC;
 import com.brisc.BRISC.states.GamePhase;
 import com.brisc.BRISC.states.Menu;
 import com.brisc.BRISC.states.Exit;
+
+import java.awt.AWTException;
 import java.awt.Dimension;
+import java.awt.MouseInfo;
+import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.Robot;
 import java.awt.event.*;
 import javax.swing.*;
 
@@ -26,12 +31,14 @@ public class BaconRidingIntelligentSpaceCats {
     static Component visual;
     static GamePhase current;
     static boolean fullScreen;
+    static long time;
+    static Robot rob;
     
     /**
      * @param args the command line arguments
      * @throws Exception
      */
-    public static void main(String[] args) throws Throwable {
+    public static void main(String[] args) /*throws Throwable*/ {
                 
         frame = new JFrame();
         frame.setPreferredSize(new Dimension(1024,768));
@@ -43,13 +50,48 @@ public class BaconRidingIntelligentSpaceCats {
         frame.addKeyListener(new keyEvents());
         frame.addMouseWheelListener(new wheeleEvents());
         
+        try {
+        	rob = new Robot();
+        } catch(AWTException e) {
+        	rob = null;
+        }
+        
         changePhase(new Menu());
+        
+        time = System.currentTimeMillis();
         
         while(running) {
             
             current.update();
             visual.repaint();
-            Thread.sleep(5);
+            
+            do {
+            	
+            	if(rob != null && current.holdMouse()) {
+            		
+            		try {
+            			
+            			Point mousePo = MouseInfo.getPointerInfo().getLocation();
+            			
+            			if(mousePo.x < current.getBounds().getX() + 20)
+            				rob.mouseMove(current.getBounds().x + 20, mousePo.y);
+            			
+            			if(mousePo.x > current.getBounds().getX() + current.getBounds().getWidth() - 20)
+            				rob.mouseMove(current.getBounds().x + current.getBounds().width - 20, mousePo.y);
+            			
+            			if(mousePo.y < current.getBounds().getY() + 20)
+            				rob.mouseMove(mousePo.x, current.getBounds().y + 20);
+            			
+            			if(mousePo.y > current.getBounds().getY() + current.getBounds().getHeight() - 20)
+            				rob.mouseMove(mousePo.x, current.getBounds().y + current.getBounds().height - 20);
+            			
+            		} catch(NullPointerException e) {}
+            		
+            	}
+            	
+            } while(System.currentTimeMillis() - time < 5);
+            
+            time = System.currentTimeMillis();
             
         }
         

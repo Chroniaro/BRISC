@@ -245,13 +245,11 @@ public class Region {
         synchronized(this.entities) {
         	
         	List<AbstractEntity> toTransfer = new ArrayList<>();
-        	int x = 0;
         	Iterator<AbstractEntity> i = entities.iterator();
 	        while(i.hasNext()) {
 				AbstractEntity e = i.next();
 				if(e.x < this.x || e.x > this.x + World.regionsize || e.y < this.y || e.y > this.y + World.regionsize)
 					toTransfer.add(e);
-				x++;
 			}
 	        for(AbstractEntity n : toTransfer) {
 	        	

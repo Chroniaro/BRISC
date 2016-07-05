@@ -5,6 +5,9 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Shape;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
@@ -23,11 +26,12 @@ public abstract class GameMenu {
 	ArrayList<MenuObject> objects;
 	Game game;
 	
-	public GameMenu(Game g) {
+	public GameMenu(Game g, int width, int height) {
 		
 		objects = new ArrayList<>();
 		this.game = g;
 		this.alignment = Alignment.center;
+		setRelativeBounds(new Dimension(width, height));
 		
 	}
 	
@@ -57,8 +61,6 @@ public abstract class GameMenu {
 	
 	public final void draw(Graphics2D g2d) {
 		
-		//Rectangle phaseBounds = game.getBounds();
-		
 		BufferedImage img = new BufferedImage(relativeBounds.width, relativeBounds.height, BufferedImage.TYPE_4BYTE_ABGR);
 		
 		this.render(img.createGraphics());
@@ -82,7 +84,15 @@ public abstract class GameMenu {
 		g2d.setStroke(new BasicStroke(10));
 		g2d.drawRoundRect(pos.x, pos.y, relativeBounds.width, relativeBounds.height, 20, 20);
 		
-		g2d.drawImage(img, pos.x, pos.y, null);
+		Shape oldClip = g2d.getClip();
+		AffineTransform oldAT = g2d.getTransform();
+		
+		g2d.translate(pos.x, pos.y);
+		g2d.setClip(new Rectangle(0, 0, relativeBounds.width, relativeBounds.height));
+		render(g2d);
+		
+		g2d.setTransform(oldAT);
+		g2d.setClip(oldClip);
 		
 	}
 	

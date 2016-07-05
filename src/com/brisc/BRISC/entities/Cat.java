@@ -84,7 +84,7 @@ public class Cat extends Entity implements Damageable {
         
         if(mouseLocation.y <= eye.y)  ly += ldy * 30;
         
-        return new Laser(lx, ly, ldx * 30, ldy * 30, motion[0] + ldx * 12, motion[1] + ldy * 12);
+        return new Laser(lx, ly, ldx * 30, ldy * 30, motion[0] + ldx * 8, motion[1] + ldy * 8);
         
     }
     
@@ -144,6 +144,7 @@ public class Cat extends Entity implements Damageable {
 	public void takeDamage(double amount) {
 		
 		health -= amount;
+		health = health < 0 ? 0 : (health > 1 ? 1 : health);
 		
 	}
 
@@ -151,6 +152,7 @@ public class Cat extends Entity implements Damageable {
 	public void heal(double amount) {
 		
 		health += amount;
+		health = health < 0 ? 0 : (health > 1 ? 1 : health);
 		
 	}
 
@@ -162,7 +164,7 @@ public class Cat extends Entity implements Damageable {
 	}
 
 	@Override
-	public void die() {
+	public void die(Game g) {
 		
 		this.setVisible(false);
 		

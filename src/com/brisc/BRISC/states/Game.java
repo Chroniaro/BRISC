@@ -11,7 +11,6 @@ import com.brisc.BRISC.entities.Orbitor;
 import com.brisc.BRISC.menu.ExitMenu;
 import com.brisc.BRISC.menu.GameMenu;
 import com.brisc.BRISC.menu.ResourceMenu;
-import com.brisc.BRISC.entities.AbstractEntity;
 import com.brisc.BRISC.entities.Cat;
 import com.brisc.BRISC.entities.Damageable;
 import com.brisc.BRISC.entities.Enemy;
@@ -23,6 +22,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 import java.text.DecimalFormat;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -52,8 +52,19 @@ public class Game extends GamePhase {
     long lastUpdate;
     int fpsCountTimer = 0;
     double fps;
+    public double catFood;
+    public double foodEatRate;
+    public double catNip;
+    public double nipEatRate;
+    Robot mouseMover;
     
     public Game(World w) {
+    	
+    	try {
+			mouseMover = new Robot();
+		} catch (AWTException e) {
+			mouseMover = null;
+		}
     	
     	openMenus = new CopyOnWriteArrayList<>();
         
@@ -79,6 +90,11 @@ public class Game extends GamePhase {
         spaceBits = ResourceManager.getResource(ResourceManager.Resources.spaceGeneric);
         
         lastUpdate = System.currentTimeMillis();
+        
+        catFood = 100;
+        catNip = 10;
+        foodEatRate = 1.0;
+        nipEatRate = 0.0;
         
     }
     
@@ -107,11 +123,18 @@ public class Game extends GamePhase {
     		return;
     	}
     	
-    	Point mouseLocation = getMousePosition();
+    	catFood = Math.max(0, (catFood - (foodEatRate * foodEatRate * world.swarm.size() * 0.0005)));
+        if(catFood == 0)
+        	foodEatRate = 0;
+        
+        catNip = Math.max(0, (catNip - (nipEatRate * nipEatRate * world.swarm.size() * 0.00005)));
+        if(catNip == 0)
+        	nipEatRate = 0;
     	
     	Point mp = super.getMousePosition();
     	mp.x -= offset.x;
     	mp.y -= offset.y;
+    	
     	if(mp.distance(centerOfMotion) > 100) {
             
     		double multi = 1;
@@ -160,9 +183,18 @@ public class Game extends GamePhase {
         	
             c.bob += bounceHeight;
             
-            Laser l = c.laser(mouse == 1, mouseLocation, new double[] {dx, dy});
+            Laser l = c.laser(mouse == 1, mp, new double[] {dx, dy});
             if(l != null) {
             	world.addObject(l);
+            }
+            
+            c.heal(getRegenRate() * 0.005);
+            
+            if(c.getHealth() <= 0.01) {
+            	
+            	c.die(this);
+            	world.swarm.remove(c);
+            	
             }
             
         }
@@ -177,7 +209,7 @@ public class Game extends GamePhase {
         	
         	if(d.getHealth() <= 0) {
         		
-        		d.die();
+        		d.die(this);
         		world.removeObject(d.asEntity());
         		
         	}
@@ -192,7 +224,7 @@ public class Game extends GamePhase {
     	if(getBounds() == null) return;
     	
     	List<Entity> entities = world.getAllEntities(Entity.class);
-    	sort(entities);
+    	Collections.sort(entities);
     	
     	Point offset = new Point((int)((getWidth() - 1024) / 2), (int) ((getHeight() - 768) / 2));
     	
@@ -276,7 +308,7 @@ public class Game extends GamePhase {
     	world.swarm.toArray(l);
         for(Cat c: l) {
             if(c.isVisible()) {
-                if(getMousePosition().x >= centerOfMotion.x + c.offSetX)
+                if(getMousePosition().x >= offset.x + centerOfMotion.x + c.offSetX)
                     g2d.drawImage(c.getSprite(), centerOfMotion.x + (int)c.offSetX - (int)(c.getSprite().getWidth()/2), centerOfMotion.y + (int)c.offSetY - (int)(c.getSprite().getHeight()/2) + (int)c.bob, null);
                 else {
                     g2d.drawImage(c.getSprite(), centerOfMotion.x + (int)c.offSetX + (int)(c.getSprite().getWidth()/2), centerOfMotion.y + (int)c.offSetY - (int)(c.getSprite().getHeight()/2) + (int)c.bob, -c.getSprite().getWidth(), c.getSprite().getHeight(), null);
@@ -379,6 +411,10 @@ public class Game extends GamePhase {
 	        		"Total Motion: " + format.format(Math.sqrt((dx*dx) + (dy*dy))),
 	        		"",
 	        		"View Scale: " + size,
+	        		"",
+	        		"Food: " + format.format(catFood),
+	        		"Nip: " + format.format(catNip),
+	        		"Regen Rate: " + format.format(getRegenRate()),
 	        		"",
 	        		"Entities: " + entities.size(),
 	        		"FPS: " + fps
@@ -553,8 +589,7 @@ public class Game extends GamePhase {
             	}
             	setCrosshairCursor(false);
             	cursor = Cursor.getDefaultCursor();
-            	ResourceMenu menu = new ResourceMenu(this);
-            	menu.setRelativeBounds(new Dimension(600,400));
+            	ResourceMenu menu = new ResourceMenu(this, 600, 400);
             	this.openMenus.add(menu);
             	break;
             	
@@ -568,8 +603,7 @@ public class Game extends GamePhase {
             	eMenuOpen = true;
             	setCrosshairCursor(false);
             	cursor = Cursor.getDefaultCursor();
-            	ExitMenu emenu = new ExitMenu(this);
-            	emenu.setRelativeBounds(new Dimension(120,200));
+            	ExitMenu emenu = new ExitMenu(this, 120, 200);
             	this.openMenus.add(emenu);
             	break;
             
@@ -595,43 +629,21 @@ public class Game extends GamePhase {
     	return new Point((int)(mouseLocation.x / size - getWidth()*(1-size)/(2*size)), (int)(mouseLocation.y / size - getHeight()*(1-size)/(2*size)));
     }
     
-    public static <T extends AbstractEntity> void sort(List<T> list) {
+    public double getRegenRate() {
     	
-    	sort(list, 0, list.size() - 1);
+    	double rate = foodEatRate;
+    	
+    	if(catFood == 0)
+    		rate = 0;
+    	
+    	return(0.1 * Math.log(rate + 0.2));
     	
     }
     
-    public static <T extends AbstractEntity> void sort(List<T> list, int lowIndex, int highIndex) {
+    @Override
+    public boolean holdMouse() {
     	
-    	int l = lowIndex;
-    	int u = highIndex;
-    	int pivot = (int)Math.round(l / 2 + u / 2);
-    	
-    	while(l <= u) {
-    		
-    		while(list.get(l).layer < list.get(pivot).layer)
-    			l++;
-    		while(list.get(u).layer > list.get(pivot).layer)
-    			u--;
-    		
-    		if(l <= u) {
-    			
-    			T e = list.get(l);
-    			list.set(l, list.get(u));
-    			list.set(u, e);
-    			
-    			l++;
-    			u--;
-    			
-    		}
-    		
-    	}
-    	
-    	if(lowIndex < u)
-			sort(list, lowIndex, u);
-		
-		if(highIndex > l)
-			sort(list, l, highIndex);
+    	return openMenus.size() == 0;
     	
     }
     

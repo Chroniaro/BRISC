@@ -2,7 +2,7 @@ package com.brisc.BRISC.entities;
 
 import java.awt.Color;
 import java.awt.Polygon;
-import java.awt.Rectangle;
+import java.awt.geom.Line2D;
 
 import com.brisc.BRISC.worldManager.World;
 
@@ -17,31 +17,22 @@ public class Enemy_Laser extends Laser {
 	
 	@Override
 	public void checkCollisions(World w) {
-		
-		Rectangle thisRectangle = new Rectangle((int)this.x, (int)this.y, (int)this.sx, (int)this.sy);
     	
 		Object[] l = w.swarm.toArray();
+		
+		Line2D.Double thisLine = new Line2D.Double(this.x, this.y, this.x + this.sx, this.y + this.sy);
 		
     	for(Object o : l) {
     		
     		Cat c = (Cat) o;
     		
     		Polygon box = c.getHitBox();
-    		if(box.intersects(thisRectangle)) 
-    			if(box.contains(this.x, this.y) || box.contains(this.x + sx, this.y + sy)) {
+    		if(checkIntersect(thisLine, box)) {
     			
-	    			c.takeDamage(0.05);
-	    			if(c.getHealth() <= 0) {
-	    				
-	    				c.die();
-	    				w.swarm.remove(c);
-	    				
-	    			}
-	    			
-	    			this.setVisible(false);
-	    			w.removeObject(this);
-	    			
-	    		}
+    			c.takeDamage(0.05);
+    			w.removeObject(this);
+    			
+    		}
     		
     	}
 		

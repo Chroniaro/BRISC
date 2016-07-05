@@ -6,12 +6,10 @@
 package com.brisc.BRISC.worldManager;
 
 import com.brisc.BRISC.entities.*;
-
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  *

@@ -46,10 +46,12 @@ public class Component extends JComponent {
 
             @Override
             public void mouseEntered(MouseEvent e) {
+            	phase.mouseIn(e);
             }
 
             @Override
             public void mouseExited(MouseEvent e) {
+            	phase.mouseOut(e);
             }
             
         });
