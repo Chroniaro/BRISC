@@ -123,11 +123,11 @@ public class Game extends GamePhase {
     		return;
     	}
     	
-    	catFood = Math.max(0, (catFood - (foodEatRate * foodEatRate * world.swarm.size() * 0.0005)));
+    	catFood = Math.max(0, (catFood - (foodEatRate * foodEatRate * world.swarm.size() * 0.0002)));
         if(catFood == 0)
         	foodEatRate = 0;
         
-        catNip = Math.max(0, (catNip - (nipEatRate * nipEatRate * world.swarm.size() * 0.00005)));
+        catNip = Math.max(0, (catNip - (nipEatRate * nipEatRate * world.swarm.size() * 0.00002)));
         if(catNip == 0)
         	nipEatRate = 0;
     	
@@ -636,7 +636,7 @@ public class Game extends GamePhase {
     	if(catFood == 0)
     		rate = 0;
     	
-    	return(0.1 * Math.log(rate + 0.2));
+    	return(.1 * Math.log(rate + 0.2));
     	
     }
     

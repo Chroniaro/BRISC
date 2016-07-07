@@ -8,10 +8,13 @@ import com.brisc.BRISC.worldManager.World;
 
 public class Enemy_Laser extends Laser {
 	
-	public Enemy_Laser(double x, double y, double dx, double dy, double mx, double my) {
+	double damage;
+	
+	public Enemy_Laser(double x, double y, double dx, double dy, double mx, double my, double damage) {
 		
 		super(x, y, dx, dy, mx, my, Color.green);
 		this.layer = 7;
+		this.damage = damage;
 		
 	}
 	
@@ -29,7 +32,7 @@ public class Enemy_Laser extends Laser {
     		Polygon box = c.getHitBox();
     		if(checkIntersect(thisLine, box)) {
     			
-    			c.takeDamage(0.05);
+    			c.takeDamage(damage);
     			w.removeObject(this);
     			
     		}

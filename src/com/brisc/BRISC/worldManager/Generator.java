@@ -5,6 +5,7 @@ import java.awt.Point;
 import java.util.Random;
 
 import com.brisc.BRISC.entities.Enemy;
+import com.brisc.BRISC.entities.EnemyBig;
 import com.brisc.BRISC.entities.Planet;
 
 public class Generator {
@@ -111,7 +112,19 @@ public class Generator {
 			p.layer = 1;
 			p.setVisible(true);
 			
-			if(rand.nextDouble() < 0.6) {
+			if(rand.nextDouble() < 0.05) {
+				
+				EnemyBig e = new EnemyBig(
+						location.x + (starSize - psize) / 2 + (Math.sin(ang) * dist) + 32, 
+						location.y + (starSize - psize) / 2 + (Math.cos(ang) * dist) + 32, 
+						dist, ang, speed, new Point(location.x + starSize / 2, location.y + starSize / 2)
+				);
+				
+				r.addEntity(e);
+				e.layer = 3;
+				e.setVisible(true);
+				
+			} else if(rand.nextDouble() < 0.6) {
 				
 				Enemy e = new Enemy(
 						location.x + (starSize - psize) / 2 + (Math.sin(ang) * dist) + 32, 

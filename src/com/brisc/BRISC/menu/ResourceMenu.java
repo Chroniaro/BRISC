@@ -13,8 +13,6 @@ public class ResourceMenu extends GameMenu {
 		
 		super(g, width, height);
 		
-		g.catFood = 10;
-		
 		foodSlider = new Slider(30, 100, width - 60, 10, 50, "", g.foodEatRate, 0, 5, 51);
 		nipSlider  = new Slider(30, 200, width - 60, 10, 50, "",  g.nipEatRate, 0, 5, 51);
 		this.objects.add(foodSlider);

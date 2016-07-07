@@ -63,9 +63,10 @@ public class BaconRidingIntelligentSpaceCats {
         while(running) {
             
             current.update();
-            visual.repaint();
             
             do {
+            	
+            	visual.repaint();
             	
             	if(rob != null && current.holdMouse()) {
             		

@@ -19,7 +19,7 @@ public abstract class ResourceManager {
     public enum Resources {
         catBlack, catBrown, catOrange, catTabby, catPurple, 
         backGround, spaceGeneric, crosshair,
-        enemyBasic
+        enemyBasic, enemyBig
     }
     
     public static URL getResource(String resource) {
@@ -60,6 +60,9 @@ public abstract class ResourceManager {
                     
                 case enemyBasic:
                 	return ImageIO.read(getResource("images/enemies/enemy_basic.png"));
+                	
+                case enemyBig:
+                	return ImageIO.read(getResource("images/enemies/enemy_big.png"));
 
                 default:
                     return(null);
