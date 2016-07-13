@@ -19,11 +19,11 @@ public class Enemy extends Orbitor implements Damageable {
 	final static int betweenDist = 75;
 	final static Map<Integer, Boolean> takenSpots = new HashMap<>();
 	Point homeSystem;
+	int homeDist;
 	final static int protectiveZone = 2000;
 	double shotTime = 100;
 	public Enemy_Laser laser;
 	Random rand;
-	Point eye = new Point(32, 32);
 	
 	public Enemy(double x, double y, double dist, double ang, double speed, Point homeSystem) {
 		
@@ -45,12 +45,14 @@ public class Enemy extends Orbitor implements Damageable {
 		final double dist = distanceFrom(catX, catY);
 		final double homeDist = distanceFrom(homeSystem.x, homeSystem.y);
 		final double angToCat = getAngleToPosition(catX, catY);
-		final double diff = Math.abs(this.ang - angToCat);
-		final double angOffset = Math.min(diff, 2 * Math.PI - diff);
+		double diff = angToCat + Math.PI * 1/2 - this.ang;
+		while(diff > 2 * Math.PI)
+			diff -= 2 * Math.PI;
+		final double angOffset = Math.min(Math.abs(diff), Math.abs(2 * Math.PI + diff));
 		
 		if(phase == 0) {
 			
-			if((dist < 800 && angOffset < Math.PI / 6) || getHealth() < 1) {
+			if((angOffset + 1) * dist < 800 || getHealth() < 1) {
 				
 				phase = 1;
 				
@@ -103,7 +105,7 @@ public class Enemy extends Orbitor implements Damageable {
 			
 			double turn;
 			
-			turn = (homeDist - 2 * preferredDist) * Math.PI / 10;
+			turn = (homeDist - this.homeDist) * Math.PI / 10;
 			if(turn > Math.PI / 2)
 				turn = Math.PI / 2;
 			if(turn < -Math.PI / 2)
@@ -147,7 +149,7 @@ public class Enemy extends Orbitor implements Damageable {
 					
 				}
 			
-			shoot(new Point((int)catX, (int)catY), w, 30 + (int)Math.round(Math.random() * 150), 20, 0.02, eye);
+			shoot(new Point((int)catX, (int)catY), w, 30 + (int)Math.round(Math.random() * 150), 20, 0.02);
 			
 		} else {
 			
@@ -166,14 +168,14 @@ public class Enemy extends Orbitor implements Damageable {
 		
 	}
 	
-	void shoot(World w, double dx, double dy, Point eye, double damage) {
+	void shoot(World w, double dx, double dy, double damage) {
 		
-		Laser laser = new Enemy_Laser(x + eye.x, y + eye.y, dx * 30, dy * 30, dx * 8, dy * 8, damage);
+		Laser laser = new Enemy_Laser(x + getEye().x, y + getEye().y, dx * 30, dy * 30, dx * 8, dy * 8, damage);
 		w.addObject(laser);
 		
 	}
 	
-	void shoot(Point exactTarget, World w, int time, int accuracy, double damage, Point eye) {
+	void shoot(Point exactTarget, World w, int time, int accuracy, double damage) {
 		
 		Point target = new Point(exactTarget.x + (int)(Math.random() * accuracy), exactTarget.y + (int)(Math.random() * accuracy));
 		
@@ -182,13 +184,13 @@ public class Enemy extends Orbitor implements Damageable {
 		if(shotTime <= 0) {
 			
 			shotTime = time;
-			Point from = new Point((int) (x + eye.x), (int) (y + eye.y));
+			Point from = new Point((int) (x + getEye().x), (int) (y + getEye().y));
 			
 			double ldx, ldy;
 			ldx = (target.x - from.x) / target.distance(from);
 			ldy = (target.y - from.y) / target.distance(from);
 			
-			shoot(w, ldx, ldy, eye, damage);
+			shoot(w, ldx, ldy, damage);
 			
 		}
 		
@@ -196,8 +198,8 @@ public class Enemy extends Orbitor implements Damageable {
 	
 	double distanceFrom(double x, double y) {
 		
-		double offsetX = this.x - x;
-		double offsetY = this.y - y;
+		double offsetX = this.x + getEye().x - x;
+		double offsetY = this.y + getEye().y - y;
 		
 		return Math.sqrt(Math.pow(offsetX, 2) + Math.pow(offsetY, 2));
 		
@@ -205,8 +207,8 @@ public class Enemy extends Orbitor implements Damageable {
 	
 	double getAngleToPosition(double x, double y) {
 		
-		double offsetX = this.x - x;
-		double offsetY = this.y - y;
+		double offsetX = this.x + getEye().x - x;
+		double offsetY = this.y + getEye().y - y;
 		
 		if(offsetY == 0) {
 			
@@ -269,6 +271,12 @@ public class Enemy extends Orbitor implements Damageable {
 		
 		g.catFood += 20 * Math.pow(rand.nextGaussian(), 2);
 		g.catNip += 0.5 * Math.max(Math.floor(10 * Math.pow(rand.nextGaussian(), 2) - 2), 0);
+		
+	}
+	
+	Point getEye() {
+		
+		return new Point(32, 32);
 		
 	}
 

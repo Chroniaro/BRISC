@@ -20,7 +20,7 @@ public class Enemy_Laser extends Laser {
 	
 	@Override
 	public void checkCollisions(World w) {
-    	
+		
 		Object[] l = w.swarm.toArray();
 		
 		Line2D.Double thisLine = new Line2D.Double(this.x, this.y, this.x + this.sx, this.y + this.sy);

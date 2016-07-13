@@ -26,12 +26,14 @@ public class EnemyBig extends Enemy {
 		final double dist = distanceFrom(catX, catY);
 		final double homeDist = distanceFrom(homeSystem.x, homeSystem.y);
 		final double angToCat = getAngleToPosition(catX, catY);
-		final double diff = Math.abs(this.ang - angToCat);
-		final double angOffset = Math.min(diff, 2 * Math.PI - diff);
+		double diff = angToCat + Math.PI * 1/2 - this.ang;
+		while(diff > 2 * Math.PI)
+			diff -= 2 * Math.PI;
+		final double angOffset = Math.min(Math.abs(diff), Math.abs(2 * Math.PI + diff));
 		
 		if(phase == 0) {
 			
-			if((dist < 500) || getHealth() < 1) {
+			if((angOffset + 1) * dist < 1200 || getHealth() < 1) {
 				
 				phase = 1;
 				
@@ -137,7 +139,7 @@ public class EnemyBig extends Enemy {
 			
 			this.dist = dist;
 			this.ang = angToCat;
-			speed = 1 / (Math.pow(dist, 0.8) + 2);
+			speed = 1.5 / (Math.pow(dist, 0.8) + 2);
 			
 			if(speed >= 0)
 				this.ang -= Math.PI / 2;
@@ -171,7 +173,7 @@ public class EnemyBig extends Enemy {
 				for(int i = 0; i < shots; i++) {
 					
 					double ang = 2 * Math.PI * i / shots;
-					shoot(w, Math.sin(ang), Math.cos(ang), eye, 0.1);
+					shoot(w, Math.sin(ang), Math.cos(ang), 0.1);
 					
 				}
 				
@@ -201,7 +203,7 @@ public class EnemyBig extends Enemy {
 				speed = 0.05;
 				this.dist = 0;
 				if(spaTime % 5 == 0)
-					shoot(w, Math.sin(this.ang + Math.PI / 2), Math.cos(this.ang + Math.PI / 2), eye, 0.2);
+					shoot(w, Math.sin(this.ang + Math.PI / 2), Math.cos(this.ang + Math.PI / 2), 0.2);
 				
 			}
 			
@@ -209,7 +211,7 @@ public class EnemyBig extends Enemy {
 		
 		if(onCat) {
 			
-			if(dist > preferredDist + ((placeOnCat + 2) * betweenDist) || phase != 1) {
+			if((dist > preferredDist + ((placeOnCat + 2) * betweenDist)) || phase != 1) {
 				
 				onCat = false;
 				takenSpots.put(placeOnCat, false);
@@ -218,7 +220,8 @@ public class EnemyBig extends Enemy {
 				placeOnCat = -1;
 				enemiesOnCats -= 3;
 				
-			}
+			} else if(Math.abs(dist - (preferredDist + (placeOnCat + 1) * betweenDist)) < 100)
+				shoot(new Point((int)catX, (int)catY), w, 20 + (int)Math.round(Math.random() * 100), 10, 0.08);
 			
 			if(placeOnCat > 0)
 				if(!(takenSpots.containsKey(placeOnCat - 1) && takenSpots.get(placeOnCat - 1)) && phase == 1) {
@@ -229,23 +232,21 @@ public class EnemyBig extends Enemy {
 					
 				}
 			
-			if(Math.abs(dist - (preferredDist + (placeOnCat + 1) * betweenDist)) < 100)
-				shoot(new Point((int)catX, (int)catY), w, 20 + (int)Math.round(Math.random() * 100), 10, 0.08, eye);
-			
 		} else {
 			
 			shotTime = Math.min(100, shotTime + 0.5);
 			
-			if(dist < preferredDist + ((enemiesOnCats + 1) * betweenDist)) {
-				
-				onCat = true;
-				placeOnCat = enemiesOnCats;
-				takenSpots.put(placeOnCat, true);
-				takenSpots.put(placeOnCat + 1, true);
-				takenSpots.put(placeOnCat + 2, true);
-				enemiesOnCats += 3;
-				
-			}
+			if(phase == 1)
+				if(dist < preferredDist + ((enemiesOnCats + 1) * betweenDist)) {
+					
+					onCat = true;
+					placeOnCat = enemiesOnCats;
+					takenSpots.put(placeOnCat, true);
+					takenSpots.put(placeOnCat + 1, true);
+					takenSpots.put(placeOnCat + 2, true);
+					enemiesOnCats += 3;
+					
+				}
 			
 		}
 		
@@ -286,8 +287,15 @@ public class EnemyBig extends Enemy {
 		}
 		this.setVisible(false);
 		
-		g.catFood += 100 * Math.pow(rand.nextGaussian(), 2);
+		g.catFood += 20 * Math.pow(rand.nextGaussian(), 2);
 		g.catNip += 20 * Math.pow(rand.nextGaussian(), 2);
+		
+	}
+	
+	@Override
+	Point getEye() {
+		
+		return new Point(64, 64);
 		
 	}
 

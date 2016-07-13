@@ -104,19 +104,11 @@ public class Generator {
 			if(rand.nextDouble() < 0.02)
 				c = new Color(.15f, 0f, .5f);
 			
-			p = new Planet(
-					location.x + (starSize - psize) / 2 + (Math.sin(ang) * dist), 
-					location.y + (starSize - psize) / 2 + (Math.cos(ang) * dist), 
-					psize, c, dist, ang, speed);
-			r.addEntity(p);
-			p.layer = 1;
-			p.setVisible(true);
-			
 			if(rand.nextDouble() < 0.05) {
 				
 				EnemyBig e = new EnemyBig(
-						location.x + (starSize - psize) / 2 + (Math.sin(ang) * dist) + 32, 
-						location.y + (starSize - psize) / 2 + (Math.cos(ang) * dist) + 32, 
+						location.x + (starSize - psize) / 2 + (Math.sin(ang) * dist), 
+						location.y + (starSize - psize) / 2 + (Math.cos(ang) * dist), 
 						dist, ang, speed, new Point(location.x + starSize / 2, location.y + starSize / 2)
 				);
 				
@@ -135,6 +127,16 @@ public class Generator {
 				r.addEntity(e);
 				e.layer = 3;
 				e.setVisible(true);
+				
+			} else {
+				
+				p = new Planet(
+						location.x + (starSize - psize) / 2 + (Math.sin(ang) * dist), 
+						location.y + (starSize - psize) / 2 + (Math.cos(ang) * dist), 
+						psize, c, dist, ang, speed);
+				r.addEntity(p);
+				p.layer = 1;
+				p.setVisible(true);
 				
 			}
 			

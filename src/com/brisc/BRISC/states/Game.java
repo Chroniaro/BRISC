@@ -22,6 +22,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -36,6 +37,7 @@ public class Game extends GamePhase {
     public static boolean showDebugLines = false;
     private boolean bounce;
     private double bounceHeight;
+    double bounceOffset;
     public double x, y, dx, dy;
     public static final Point centerOfMotion = new Point(512, 370);
     public double size = 1;
@@ -57,6 +59,8 @@ public class Game extends GamePhase {
     public double catNip;
     public double nipEatRate;
     Robot mouseMover;
+    List<AffineTransform> matrices;
+    BufferedImage godImg;
     
     public Game(World w) {
     	
@@ -71,7 +75,7 @@ public class Game extends GamePhase {
     	this.world = w;
     	
         world.swarm.add(new Cat(448,350,0));
-        world.swarm.get(0).offSetX = -10;
+        world.swarm.get(0).offSetX = -100;
         world.swarm.get(0).offSetY = 0;
         world.swarm.get(0).setVisible(true);
         world.swarm.get(0).screenLocation = new Point(0, 0);
@@ -95,6 +99,11 @@ public class Game extends GamePhase {
         catNip = 10;
         foodEatRate = 1.0;
         nipEatRate = 0.0;
+        
+        matrices = new ArrayList<>();
+        
+        godImg = ResourceManager.getGodCat(0.9f);
+        bounceOffset = 0;
         
     }
     
@@ -123,11 +132,11 @@ public class Game extends GamePhase {
     		return;
     	}
     	
-    	catFood = Math.max(0, (catFood - (foodEatRate * foodEatRate * world.swarm.size() * 0.0002)));
+    	catFood = Math.max(0, (catFood - foodConsumed()));
         if(catFood == 0)
         	foodEatRate = 0;
         
-        catNip = Math.max(0, (catNip - (nipEatRate * nipEatRate * world.swarm.size() * 0.00002)));
+        catNip = Math.max(0, (catNip - nipConsumed()));
         if(catNip == 0)
         	nipEatRate = 0;
     	
@@ -176,12 +185,13 @@ public class Game extends GamePhase {
         
         Cat[] list = new Cat[world.swarm.size()];
         world.swarm.toArray(list);
+        bounceOffset += bounceHeight;
         for(Cat c: list) {
             
         	c.screenLocation.x = (int) x;
         	c.screenLocation.y = (int) y;
         	
-            c.bob += bounceHeight;
+        	c.bob += bounceHeight;
             
             Laser l = c.laser(mouse == 1, mp, new double[] {dx, dy});
             if(l != null) {
@@ -218,7 +228,7 @@ public class Game extends GamePhase {
         
     }
 
-    @Override
+	@Override
     public void render(Graphics2D g2d) {
         
     	if(getBounds() == null) return;
@@ -236,11 +246,9 @@ public class Game extends GamePhase {
 				(int)(768 * size)
 		);
     	g2d.setClip(r);
-    	AffineTransform at = g2d.getTransform();
-    	AffineTransform or = g2d.getTransform();
-    	at.scale(this.size, this.size);
-    	at.translate(r.x/size, r.y/size);
-    	g2d.setTransform(at);
+    	pushMatrix(g2d);
+    	g2d.scale(this.size, this.size);
+    	g2d.translate(r.x/size, r.y/size);
         
         //Render Space
         for(int x = -1; x <= 2; x++) {
@@ -271,7 +279,7 @@ public class Game extends GamePhase {
         }
 
         //Render Space Objects
-        AffineTransform old = g2d.getTransform();
+        pushMatrix(g2d);
         g2d.translate(centerOfMotion.x - x, centerOfMotion.y - y);;
     	for(Entity o : entities) {
             if(o.isVisible()) {
@@ -301,17 +309,21 @@ public class Game extends GamePhase {
             }
     	}
         
-    	g2d.setTransform(old);
+    	popMatrix(g2d);
     	
         //Render Cats
+    	if(getMousePosition().x >= offset.x + centerOfMotion.x)
+    		g2d.drawImage(godImg, centerOfMotion.x - 40, (int) (centerOfMotion.y - 40 + bounceOffset), null);
+    	else
+    		g2d.drawImage(godImg, centerOfMotion.x + 40, (int) (centerOfMotion.y - 40 + bounceOffset), -80, 80, null);
     	Cat[] l = new Cat[world.swarm.size()];
     	world.swarm.toArray(l);
         for(Cat c: l) {
             if(c.isVisible()) {
                 if(getMousePosition().x >= offset.x + centerOfMotion.x + c.offSetX)
-                    g2d.drawImage(c.getSprite(), centerOfMotion.x + (int)c.offSetX - (int)(c.getSprite().getWidth()/2), centerOfMotion.y + (int)c.offSetY - (int)(c.getSprite().getHeight()/2) + (int)c.bob, null);
+                    g2d.drawImage(c.getSprite(), centerOfMotion.x + (int)c.offSetX - (int)(c.getSprite().getWidth()/2), centerOfMotion.y + (int)c.offSetY - (int)(c.getSprite().getHeight()/2) + (int)bounceOffset, null);
                 else {
-                    g2d.drawImage(c.getSprite(), centerOfMotion.x + (int)c.offSetX + (int)(c.getSprite().getWidth()/2), centerOfMotion.y + (int)c.offSetY - (int)(c.getSprite().getHeight()/2) + (int)c.bob, -c.getSprite().getWidth(), c.getSprite().getHeight(), null);
+                    g2d.drawImage(c.getSprite(), centerOfMotion.x + (int)c.offSetX + (int)(c.getSprite().getWidth()/2), centerOfMotion.y + (int)c.offSetY - (int)(c.getSprite().getHeight()/2) + (int)bounceOffset, -c.getSprite().getWidth(), c.getSprite().getHeight(), null);
                 }
                 
                 if(c.getHealth() < 1) {
@@ -343,7 +355,7 @@ public class Game extends GamePhase {
             
             //Draw Object Boxes
             g2d.setStroke(new BasicStroke(3));
-            old = g2d.getTransform();
+            pushMatrix(g2d);
         	g2d.translate(centerOfMotion.x - x, centerOfMotion.y - y);
         	g2d.setColor(Color.white);
         	for(Entity e : entities) {
@@ -356,7 +368,7 @@ public class Game extends GamePhase {
             for(Cat c : world.swarm) {
             	g2d.draw(c.getHitBox());
             }
-            g2d.setTransform(old);
+            popMatrix(g2d);
                     
             //Draw Chunk Borders
             g2d.setColor(Color.green);
@@ -378,9 +390,68 @@ public class Game extends GamePhase {
             
         }
         
+        //UI
+        g2d.setFont(new Font("Comic Sans MS", Font.PLAIN, 15));
+        
+        pushMatrix(g2d);
+        
+        final Rectangle compBounds = new Rectangle((int)(getWidth() - 160), (int)(getHeight() - 160), 120, 120);
+        
+        g2d.translate(compBounds.getCenterX(), compBounds.getCenterY());
+        g2d.scale(compBounds.width / 100, compBounds.height / 100);
+        
+        g2d.setColor(Color.darkGray);
+        g2d.fillOval(-50, -50, 100, 100);
+        g2d.setColor(Color.red);
+        g2d.setStroke(new BasicStroke(1));
+        g2d.drawOval(-50, -50, 100, 100);
+        
+        final Polygon needle = new Polygon();
+        needle.addPoint(0, 50);
+        needle.addPoint(5,  0);
+        needle.addPoint(-5,  0);
+        
+        final double ang;
+        if(y > 0)
+        	ang = Math.PI + Math.atan((double) -x / y);
+        else
+        	ang = Math.atan((double) -x / y);
+        
+        pushMatrix(g2d);
+        
+        g2d.rotate(ang);
+        g2d.setColor(Color.green);
+        g2d.fill(needle);
+        g2d.rotate(Math.PI);
+        g2d.setColor(Color.red);
+        g2d.fill(needle);
+        
+        popMatrix(g2d);
+        
+        drawText(g2d, new String[] {
+        		
+        	"Pos: (" + Math.round(x / 10) / 100.0 + " , " + Math.round(y / 10) / 100.0 + ")",
+        	"Distance: " + (int) Math.round(Math.sqrt(Math.pow(x / 1000, 2) + Math.pow(y / 1000, 2)))
+        		
+        }, -50, 50);
+        
+        popMatrix(g2d);
+        
+        pushMatrix(g2d);
+        
+        drawText(g2d, new String[] {
+        
+        	"Food: " + (int) catFood,
+        	"Catnip: " + (int) catNip
+        		
+        }, 10, getHeight() - 80);
+        
+        popMatrix(g2d);
+        
         //Reset scaling
-        g2d.setTransform(or);
+        popMatrix(g2d);
         g2d.setClip(new Rectangle(0, 0, (int)getWidth(), (int)getHeight()));
+        
         
         //Unscaled debug
         if(showDebugLines) {
@@ -402,7 +473,9 @@ public class Game extends GamePhase {
         	
 	        DecimalFormat format = new DecimalFormat("#0.00##");
 	        Point chunk = World.region(x, y);
-	        String[] text = new String[] {
+	        
+	        drawText(g2d, new String[] {
+	        		
 	        		"Pos: (" + format.format(x) + ", " + format.format(y) + ")",
 	        		"Chunk: (" + chunk.x + ", " + chunk.y + ")",
 	        		"",
@@ -418,21 +491,8 @@ public class Game extends GamePhase {
 	        		"",
 	        		"Entities: " + entities.size(),
 	        		"FPS: " + fps
-	        };
-	        
-	        final FontMetrics metrics = g2d.getFontMetrics();
-	        g2d.setColor(new Color(.1f, .1f, .1f, .3f));
-	        for (int i = 0; i < text.length; i++) {
-	        	
-				g2d.fillRect(5, i * (metrics.getHeight() + 5) + 5, metrics.stringWidth(text[i]), metrics.getHeight());
-				
-			}
-	        g2d.setColor(new Color(.9f, .9f, .9f, 1f));
-	        for (int i = 0; i < text.length; i++) {
-	        	
-				g2d.drawString(text[i], 5, (i + 1) * (metrics.getHeight() + 5));
-				
-			}
+	        		
+	        }, 0, 0);
 	        
         }
         
@@ -449,6 +509,35 @@ public class Game extends GamePhase {
     	}
         
     }
+	
+	void pushMatrix(Graphics2D g) {
+		
+		matrices.add(g.getTransform());
+		
+	}
+	
+	boolean pushPrevious(Graphics2D g, int stepsBack) {
+		
+		if(matrices.size() >= stepsBack) {
+		
+			pushMatrix(g);
+			g.setTransform(matrices.get(matrices.size() - 1 - stepsBack));
+		
+		} else
+			return false;
+		
+		return true;
+		
+	}
+	
+	AffineTransform popMatrix(Graphics2D g) {
+		
+		AffineTransform at = g.getTransform();
+		g.setTransform(matrices.get(matrices.size() - 1));
+		matrices.remove(matrices.size() - 1);
+		return at;
+		
+	}
 
     public static void drawHealthBar(Graphics2D g2d, Damageable d) {
     	
@@ -489,6 +578,30 @@ public class Game extends GamePhase {
     	g2d.setColor(bound);
     	g2d.setStroke(new BasicStroke(3));
     	g2d.draw(area);
+    	
+    }
+    
+    public static void drawText(Graphics2D g2d, String[] text, double x, double y, Color textColor, Color back, float alphaBack) {
+    	
+    	final FontMetrics metrics = g2d.getFontMetrics();
+        g2d.setColor(new Color(back.getRed() / 255f, back.getGreen() / 255f, back.getBlue() / 255f, alphaBack * (back.getAlpha() / 255f)));
+        for (int i = 0; i < text.length; i++) {
+        	
+			g2d.fillRect((int) x - 5, (int) y + i * (metrics.getHeight() + 5) + 5, metrics.stringWidth(text[i]) + 10, metrics.getHeight());
+			
+		}
+        g2d.setColor(new Color(.9f, .9f, .9f, 1f));
+        for (int i = 0; i < text.length; i++) {
+        	
+			g2d.drawString(text[i], (int) x, (int) y + (i + 1) * (metrics.getHeight() + 5));
+			
+		}
+    	
+    }
+    
+    public static void drawText(Graphics2D g2d, String[] text, double x, double y) {
+    	
+    	drawText(g2d, text, x, y, Color.white, Color.lightGray, 0.1f);
     	
     }
     
@@ -631,14 +744,22 @@ public class Game extends GamePhase {
     
     public double getRegenRate() {
     	
-    	double rate = foodEatRate;
+    	double rate = foodEatRate + nipEatRate / 10;
     	
     	if(catFood == 0)
     		rate = 0;
     	
-    	return(.1 * Math.log(rate + 0.2));
+    	return(.1 * StrictMath.log(rate + 0.2));
     	
     }
+    
+    public double nipConsumed() {
+		return nipEatRate * nipEatRate * world.swarm.size() * 0.00002;
+	}
+
+	public double foodConsumed() {
+		return foodEatRate * foodEatRate * world.swarm.size() * 0.0002;
+	}
     
     @Override
     public boolean holdMouse() {

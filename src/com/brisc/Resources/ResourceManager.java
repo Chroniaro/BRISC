@@ -5,6 +5,7 @@
  */
 package com.brisc.Resources;
 
+import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URL;
@@ -82,6 +83,41 @@ public abstract class ResourceManager {
     			getResource(Resources.catPurple),
     			getResource(Resources.catTabby)
     	}[x]);
+    	
+    }
+    
+    public static BufferedImage getGodCat(float hue) {
+    	
+    	BufferedImage godCat;
+    	
+		try {
+			
+			godCat = ImageIO.read(getResource("images/cats/God BRISC.png"));
+			
+			Color current;
+			
+			for(int x = 0; x < 20; x++)
+				for(int y = 0; y < 20; y++) {
+					
+					current = new Color(godCat.getRGB(x * 4, y * 4));
+					if(current.getRed() > 0)
+						if(current.getRed() == current.getBlue())
+							if(current.getRed() == current.getGreen()) {
+								
+								int color = Color.HSBtoRGB(hue, 1f, current.getRed() / 255f);
+								for(int px = 0; px < 4; px++)
+									for(int py = 0; py < 4; py++)
+										godCat.setRGB(x * 4 + px, y * 4 + py, color);
+								
+							}
+					
+				}
+	    	
+	    	return godCat;
+			
+		} catch (IOException e) {
+			throw new Error("Failed to load resource: GodCat, hue: " + hue);
+		}
     	
     }
     
