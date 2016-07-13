@@ -9,6 +9,7 @@ import java.awt.*;
 import java.awt.image.*;
 import java.util.HashMap;
 
+import com.brisc.BRISC.BaconRidingIntelligentSpaceCats;
 import com.brisc.BRISC.worldManager.World;
 
 /**
@@ -147,8 +148,8 @@ public abstract class Entity extends AbstractEntity {
     @Override
 	public void update(World w, Point location) {
 		
-    	x += dx;
-    	y += dy;
+    	x += BaconRidingIntelligentSpaceCats.UPDATE_SPEED / 5.0 * dx;
+    	y += BaconRidingIntelligentSpaceCats.UPDATE_SPEED / 5.0 * dy;
 		
 	}
     

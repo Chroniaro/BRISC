@@ -25,6 +25,9 @@ import javax.swing.*;
  */
 public class BaconRidingIntelligentSpaceCats {
     
+	
+	public static double UPDATE_SPEED = 10.0;
+	
     public static String saveLocation;
     static boolean running = true;
     static JFrame frame;
@@ -38,7 +41,7 @@ public class BaconRidingIntelligentSpaceCats {
      * @param args the command line arguments
      * @throws Exception
      */
-    public static void main(String[] args) /*throws Throwable*/ {
+    public static void main(String[] args) {
                 
         frame = new JFrame();
         frame.setPreferredSize(new Dimension(1024,768));
@@ -90,7 +93,7 @@ public class BaconRidingIntelligentSpaceCats {
             		
             	}
             	
-            } while(System.currentTimeMillis() - time < 5);
+            } while(System.currentTimeMillis() - time <= UPDATE_SPEED);
             
             time = System.currentTimeMillis();
             

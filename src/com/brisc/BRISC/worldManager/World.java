@@ -34,8 +34,6 @@ public class World {
     	
     	swarm = Collections.synchronizedList(new ArrayList<>());
     	
-    	loadedArea = new Rectangle();
-    	
     	gen = generator;
     	
     	for(Class<AbstractEntity> p : new Class[] {
@@ -63,22 +61,23 @@ public class World {
     	
     	regions = new HashMap<>();
     	
+    	setLoadedChunks(new Rectangle(-3, -3, 7, 7));
+    	
     	System.out.println(typeClasses);
     	
     }
 	
 	public void update(int catX, int catY) {
 		
-		for(int x = loadedArea.x; x < loadedArea.x + loadedArea.width; x++)
-        	for(int y = loadedArea.y; y < loadedArea.y + loadedArea.height; y++) {
+		for(int x = loadedArea.x + 1; x < loadedArea.x + loadedArea.width - 2; x++)
+        	for(int y = loadedArea.y + 1; y < loadedArea.y + loadedArea.height - 2; y++) {
         	
         		final Region r = regions.get(id(x, y));
         		synchronized(r.entities) {
         			
         			Object[] l = r.entities.toArray();
         			r.update(catX, catY);
-	        		for(Object e : l)
-	        			((AbstractEntity) e).update(this, new Point(catX, catY));
+        			
         		}
         		
         	}
@@ -88,8 +87,8 @@ public class World {
     public List<AbstractEntity> getAllEntities() {
         
     	ArrayList<AbstractEntity> t = new ArrayList<>();
-        for(int x = loadedArea.x; x < loadedArea.x + loadedArea.width; x++)
-        	for(int y = loadedArea.y; y < loadedArea.y + loadedArea.height; y++) {
+        for(int x = loadedArea.x + 1; x < loadedArea.x + loadedArea.width - 2; x++)
+        	for(int y = loadedArea.y + 1; y < loadedArea.y + loadedArea.height - 2; y++) {
         		
         		load(new Point(x, y));
         		t.addAll(regions.get(id(x, y)).entities);
@@ -176,19 +175,54 @@ public class World {
     	if(!regions.containsKey(id(chunk))) {
     		
     		generate(chunk);
+    		regions.get(id(chunk)).updateLazy();
     		
     	}
     	
     }
     
+    public void unload(Point chunk) {
+    	
+    }
+    
     public void setLoadedChunks(Rectangle r) {
     	
-    	for(int x = r.x; x < r.x + r.getWidth(); x++)
-    		for(int y = r.y; y < r.y + r.getHeight(); y++) {
-    			
-    			load(new Point(x, y));
-    			
-    		}
+    	if(loadedArea != null && !loadedArea.isEmpty() &&
+    			r.intersects(loadedArea)) {
+    		
+    		if(loadedArea.equals(r) || loadedArea.contains(r))
+    			return;
+    	
+    		final int dx = loadedArea.x - r.x;
+        	final int dy = loadedArea.y - r.y;
+    		
+	    	for(int x = Math.min(dx, 0); x < Math.max(dx, 0); x++)
+	    		for(int y = 0; y < r.getHeight(); y++) {
+	    			
+	    			if(dx < 0)
+	    				load(new Point(r.x + r.width + x, r.y + y));
+	    			else
+	    				load(new Point(r.x + x, r.y + y));
+	    			
+	    		}
+	    	
+	    	for(int y = Math.min(dy, 0); y < Math.max(dy, 0); y++)
+	    		for(int x = 0; x < r.getWidth(); x++) {
+	    			
+	    			if(dy < 0)
+	    				load(new Point(r.x + x, r.y + r.width + y));
+	    			else
+	    				load(new Point(r.x + x, r.y + y));
+	    			
+	    		}
+    	
+    	} else {
+    		
+    		for(int x = 0; x < r.width; x++)
+    			for(int y = 0; y < r.height; y++)
+    				load(new Point(r.x + x, r.y + y));
+    		
+    	}
     	
     	this.loadedArea = r;
     	

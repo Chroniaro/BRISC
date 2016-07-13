@@ -5,6 +5,7 @@
  */
 package com.brisc.BRISC.entities;
 
+import com.brisc.BRISC.BaconRidingIntelligentSpaceCats;
 import com.brisc.BRISC.states.Game;
 import com.brisc.BRISC.worldManager.World;
 import com.brisc.Resources.ResourceManager;
@@ -49,7 +50,7 @@ public class Cat extends Entity implements Damageable {
         if(mouseDown) shotTimer ++;
         else shotTimer = Math.min(laserDelay, shotTimer + 1);
         
-        if(shotTimer > laserDelay) {
+        if(mouseDown && shotTimer * BaconRidingIntelligentSpaceCats.UPDATE_SPEED / 5.0 > laserDelay) {
             
             shotTimer = 0;
             return getLaser(mouseLocation, motion);

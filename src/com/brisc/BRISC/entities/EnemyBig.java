@@ -3,6 +3,7 @@ package com.brisc.BRISC.entities;
 import java.awt.Point;
 import java.awt.Polygon;
 
+import com.brisc.BRISC.BaconRidingIntelligentSpaceCats;
 import com.brisc.BRISC.states.Game;
 import com.brisc.BRISC.worldManager.World;
 import com.brisc.Resources.ResourceManager;
@@ -33,11 +34,11 @@ public class EnemyBig extends Enemy {
 		
 		if(phase == 0) {
 			
-			if((angOffset + 1) * dist < 1200 || getHealth() < 1) {
-				
-				phase = 1;
-				
-			}
+//			if((angOffset + 1) * dist < 1200 || getHealth() < 1) {
+//				
+//				phase = 1;
+//				
+//			}
 			
 		}
 		
@@ -75,8 +76,8 @@ public class EnemyBig extends Enemy {
 			if(w.swarm.size() <= 0)
 				phase = 2;
 			
-			spaTime += Math.floor(1 / getHealth());
-			checkTime += Math.floor(1 / getHealth());
+			spaTime += Math.floor(1 / getHealth()) * BaconRidingIntelligentSpaceCats.UPDATE_SPEED / 5.0;
+			checkTime += Math.floor(1 / getHealth()) * BaconRidingIntelligentSpaceCats.UPDATE_SPEED / 5.0;
 			
 			if(Math.abs(dist - (preferredDist + (placeOnCat + 1) * betweenDist)) < 50) {
 				
@@ -191,7 +192,7 @@ public class EnemyBig extends Enemy {
 		
 		if(phase == 5) {
 			
-			spaTime++;
+			spaTime+= BaconRidingIntelligentSpaceCats.UPDATE_SPEED / 5.0;
 			
 			if(spaTime >= 800 || dist > preferredDist + (placeOnCat + 5) * betweenDist) {
 				

@@ -4,6 +4,7 @@ import java.awt.Point;
 import java.awt.Polygon;
 import java.util.*;
 
+import com.brisc.BRISC.BaconRidingIntelligentSpaceCats;
 import com.brisc.BRISC.states.Game;
 import com.brisc.BRISC.worldManager.World;
 import com.brisc.Resources.ResourceManager;
@@ -52,11 +53,11 @@ public class Enemy extends Orbitor implements Damageable {
 		
 		if(phase == 0) {
 			
-			if((angOffset + 1) * dist < 800 || getHealth() < 1) {
-				
-				phase = 1;
-				
-			}
+//			if((angOffset + 1) * dist < 800 || getHealth() < 1) {
+//				
+//				phase = 1;
+//				
+//			}
 			
 		}
 		
@@ -183,7 +184,7 @@ public class Enemy extends Orbitor implements Damageable {
 		
 		if(shotTime <= 0) {
 			
-			shotTime = time;
+			shotTime = time * BaconRidingIntelligentSpaceCats.UPDATE_SPEED / 5.0;
 			Point from = new Point((int) (x + getEye().x), (int) (y + getEye().y));
 			
 			double ldx, ldy;

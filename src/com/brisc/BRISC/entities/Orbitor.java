@@ -3,6 +3,7 @@ package com.brisc.BRISC.entities;
 import java.awt.Point;
 import java.awt.image.BufferedImage;
 
+import com.brisc.BRISC.BaconRidingIntelligentSpaceCats;
 import com.brisc.BRISC.worldManager.World;
 
 public abstract class Orbitor extends Entity {
@@ -32,7 +33,7 @@ public abstract class Orbitor extends Entity {
 			
 			double ox = x - Math.sin(ang) * dist;
 			double oy = y - Math.cos(ang) * dist;
-			ang += speed;
+			ang += BaconRidingIntelligentSpaceCats.UPDATE_SPEED / 5.0 * speed;
 			x = ox + Math.sin(ang) * dist;
 			y = oy + Math.cos(ang) * dist;
 			

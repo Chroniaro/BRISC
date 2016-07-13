@@ -11,6 +11,7 @@ import com.brisc.BRISC.entities.Orbitor;
 import com.brisc.BRISC.menu.ExitMenu;
 import com.brisc.BRISC.menu.GameMenu;
 import com.brisc.BRISC.menu.ResourceMenu;
+import com.brisc.BRISC.BaconRidingIntelligentSpaceCats;
 import com.brisc.BRISC.entities.Cat;
 import com.brisc.BRISC.entities.Damageable;
 import com.brisc.BRISC.entities.Enemy;
@@ -32,7 +33,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * @author Zac
  */
 public class Game extends GamePhase {
-    
+	
     public static boolean showDebugInfo = false;
     public static boolean showDebugLines = false;
     private boolean bounce;
@@ -50,9 +51,11 @@ public class Game extends GamePhase {
     private boolean crosshairCursor = true;
     private boolean eMenuOpen;
     World world;
-    public static final Dimension loadedChunkSpace = new Dimension(5, 5);
+    public static final Dimension loadedChunkSpace = new Dimension(7, 7);
     long lastUpdate;
     int fpsCountTimer = 0;
+    int motionTimer = 0;
+    long lastMotion;
     double fps;
     public double catFood;
     public double foodEatRate;
@@ -94,6 +97,7 @@ public class Game extends GamePhase {
         spaceBits = ResourceManager.getResource(ResourceManager.Resources.spaceGeneric);
         
         lastUpdate = System.currentTimeMillis();
+        lastMotion = System.currentTimeMillis();
         
         catFood = 100;
         catNip = 10;
@@ -165,8 +169,8 @@ public class Game extends GamePhase {
             dx = dy = 0;
         }
         
-        x += dx;
-        y += dy;
+        x += BaconRidingIntelligentSpaceCats.UPDATE_SPEED / 5.0 * dx;
+        y += BaconRidingIntelligentSpaceCats.UPDATE_SPEED / 5.0 * dy;
         world.setLoadedChunks(new Rectangle(
         		(int)(World.region(x, y).x - (int)(loadedChunkSpace.getWidth()  / 2)),
         		(int)(World.region(x, y).y - (int)(loadedChunkSpace.getHeight() / 2)),
@@ -226,11 +230,18 @@ public class Game extends GamePhase {
         	
         }
         
+        motionTimer = 0;
+        lastMotion = System.currentTimeMillis();
+        
     }
 
 	@Override
     public void render(Graphics2D g2d) {
         
+		final double speedMulti = ((System.currentTimeMillis() - lastMotion) / 90.0);
+		final double catX = x + dx * speedMulti;
+		final double catY = y + dy * speedMulti;
+		
     	if(getBounds() == null) return;
     	
     	List<Entity> entities = world.getAllEntities(Entity.class);
@@ -256,20 +267,20 @@ public class Game extends GamePhase {
             for(int y = -1; y <= 2; y++) {
                 
                 final int xPos, yPos, width, height;
-                if((x + (int)(this.x / 512)) % 2 == 0) {
-                    xPos = -(int)(this.x % 512) + (512*x);
+                if((x + (int)(catX / 512)) % 2 == 0) {
+                    xPos = -(int)(catX % 512) + (512*x);
                     width = 512;
                 }
                 else {
-                    xPos = 512 -(int)(this.x % 512) + (512*x);
+                    xPos = 512 -(int)(catX % 512) + (512*x);
                     width = -512;
                 }
-                if((y + (int)(this.y / 384)) % 2 == 0) {
-                    yPos = -(int)(this.y % 384) + (384*y);
+                if((y + (int)(catY / 384)) % 2 == 0) {
+                    yPos = -(int)(catY % 384) + (384*y);
                     height = 384;
                 }
                 else {
-                    yPos = 384 -(int)(this.y % 384) + (384*y);
+                    yPos = 384 -(int)(catY % 384) + (384*y);
                     height = -384;
                 }
                 g2d.drawImage(spaceBits, xPos, yPos, width, height, null);
@@ -280,11 +291,16 @@ public class Game extends GamePhase {
 
         //Render Space Objects
         pushMatrix(g2d);
-        g2d.translate(centerOfMotion.x - x, centerOfMotion.y - y);;
+        g2d.translate(centerOfMotion.x - catX, centerOfMotion.y - catY);;
     	for(Entity o : entities) {
             if(o.isVisible()) {
             	AffineTransform prev = g2d.getTransform();
             	if(Orbitor.class.isAssignableFrom(o.getClass())) {
+            		
+            		g2d.rotate(-((Orbitor) o).speed * speedMulti,
+            				(int)(o.x - Math.sin(((Orbitor) o).ang) * ((Orbitor) o).dist),
+            				(int)(o.y - Math.cos(((Orbitor) o).ang) * ((Orbitor) o).dist)
+            		);
             		
             		if(((Orbitor) o).speed >= 0)
                 		g2d.rotate(
@@ -298,8 +314,9 @@ public class Game extends GamePhase {
                 				(int)o.x + (o.getSprite().getWidth() / 2), 
                 				(int)o.y + (o.getSprite().getHeight() / 2)
                 		);
+            		
             	}
-            	g2d.drawImage(o.getSprite(), (int)o.x, (int)o.y, null);
+            	g2d.drawImage(o.getSprite(), (int)(o.x + speedMulti * o.dx), (int)(o.y + speedMulti * o.dy), null);
                 g2d.setTransform(prev);
                 if(Damageable.class.isAssignableFrom(o.getClass())) {
                 	
@@ -356,7 +373,7 @@ public class Game extends GamePhase {
             //Draw Object Boxes
             g2d.setStroke(new BasicStroke(3));
             pushMatrix(g2d);
-        	g2d.translate(centerOfMotion.x - x, centerOfMotion.y - y);
+        	g2d.translate(centerOfMotion.x - catX, centerOfMotion.y - catY);
         	g2d.setColor(Color.white);
         	for(Entity e : entities) {
         		g2d.drawRect((int)e.x, (int)e.y, e.getSprite().getWidth(), e.getSprite().getHeight());
@@ -372,18 +389,18 @@ public class Game extends GamePhase {
                     
             //Draw Chunk Borders
             g2d.setColor(Color.green);
-            Point region = World.region(x + centerOfMotion.x, y + centerOfMotion.y);
+            Point region = World.region(catX + centerOfMotion.x, catY + centerOfMotion.y);
             int lines = (int)Math.ceil(getWidth() / (double)World.regionsize);
             for(int x = (int)(-lines / 2); x <= (int)(lines / 2); x++) {
             	
-            	int lineX = (centerOfMotion.x + (int)((region.x + x) * World.regionsize - this.x));
+            	int lineX = (centerOfMotion.x + (int)((region.x + x) * World.regionsize - catX));
             	g2d.drawLine(lineX, 0, lineX, (int)getHeight());
             	
             }
             lines = (int)Math.ceil(getHeight() / (double)World.regionsize);
             for(int y = (int)(-lines / 2); y <= (int)(lines / 2); y++) {
             	
-            	int lineY = (centerOfMotion.y + (int)((region.y + y) * World.regionsize - this.y));
+            	int lineY = (centerOfMotion.y + (int)((region.y + y) * World.regionsize - catY));
             	g2d.drawLine(0, lineY, (int)getWidth(), lineY);
             	
             }
@@ -400,7 +417,7 @@ public class Game extends GamePhase {
         g2d.translate(compBounds.getCenterX(), compBounds.getCenterY());
         g2d.scale(compBounds.width / 100, compBounds.height / 100);
         
-        g2d.setColor(Color.darkGray);
+        g2d.setColor(new Color(.2f, .2f, .2f, .4f));
         g2d.fillOval(-50, -50, 100, 100);
         g2d.setColor(Color.red);
         g2d.setStroke(new BasicStroke(1));
@@ -412,10 +429,10 @@ public class Game extends GamePhase {
         needle.addPoint(-5,  0);
         
         final double ang;
-        if(y > 0)
-        	ang = Math.PI + Math.atan((double) -x / y);
+        if(catY > 0)
+        	ang = Math.PI + Math.atan((double) -catX / catY);
         else
-        	ang = Math.atan((double) -x / y);
+        	ang = Math.atan((double) -catX / catY);
         
         pushMatrix(g2d);
         
@@ -430,8 +447,8 @@ public class Game extends GamePhase {
         
         drawText(g2d, new String[] {
         		
-        	"Pos: (" + Math.round(x / 10) / 100.0 + " , " + Math.round(y / 10) / 100.0 + ")",
-        	"Distance: " + (int) Math.round(Math.sqrt(Math.pow(x / 1000, 2) + Math.pow(y / 1000, 2)))
+        	"Pos: (" + Math.round(catX / 10) / 100.0 + " , " + Math.round(catY / 10) / 100.0 + ")",
+        	"Distance: " + (int) Math.round(Math.sqrt(Math.pow(catX / 1000, 2) + Math.pow(catY / 1000, 2)))
         		
         }, -50, 50);
         
@@ -476,7 +493,7 @@ public class Game extends GamePhase {
 	        
 	        drawText(g2d, new String[] {
 	        		
-	        		"Pos: (" + format.format(x) + ", " + format.format(y) + ")",
+	        		"Pos: (" + format.format(catX) + ", " + format.format(catY) + ")",
 	        		"Chunk: (" + chunk.x + ", " + chunk.y + ")",
 	        		"",
 	        		"X Motion: " + format.format(dy),
@@ -501,12 +518,14 @@ public class Game extends GamePhase {
         }
     	
     	fpsCountTimer++;
-    	if(fpsCountTimer >= 10) {
+    	if(fpsCountTimer >= 20) {
     		
     		fps = 10000 / (System.currentTimeMillis() - lastUpdate);
     		lastUpdate = System.currentTimeMillis();
     		fpsCountTimer = 0;
     	}
+    	
+    	motionTimer++;
         
     }
 	
@@ -590,7 +609,7 @@ public class Game extends GamePhase {
 			g2d.fillRect((int) x - 5, (int) y + i * (metrics.getHeight() + 5) + 5, metrics.stringWidth(text[i]) + 10, metrics.getHeight());
 			
 		}
-        g2d.setColor(new Color(.9f, .9f, .9f, 1f));
+        g2d.setColor(textColor);
         for (int i = 0; i < text.length; i++) {
         	
 			g2d.drawString(text[i], (int) x, (int) y + (i + 1) * (metrics.getHeight() + 5));
@@ -601,7 +620,7 @@ public class Game extends GamePhase {
     
     public static void drawText(Graphics2D g2d, String[] text, double x, double y) {
     	
-    	drawText(g2d, text, x, y, Color.white, Color.lightGray, 0.1f);
+    	drawText(g2d, text, x, y, Color.white, Color.black, 0.2f);
     	
     }
     

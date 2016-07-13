@@ -5,6 +5,7 @@
  */
 package com.brisc.BRISC.worldManager;
 
+import java.awt.Point;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
@@ -235,14 +236,7 @@ public class Region {
     
     public void updateLazy() {
         
-    	
-    	
-    }
-    
-    public void update(double catX, double catY) {
-        
-        updateLazy();
-        synchronized(this.entities) {
+    	synchronized(this.entities) {
         	
         	List<AbstractEntity> toTransfer = new ArrayList<>();
         	Iterator<AbstractEntity> i = entities.iterator();
@@ -259,6 +253,17 @@ public class Region {
 	        }
 	        
         }
+    	
+    }
+    
+    public void update(double catX, double catY) {
+        
+        updateLazy();
+        Object[] entities = this.entities.toArray();
+        for(Object e : entities) {
+    		((AbstractEntity) e).update(this.world, new Point((int)catX, (int)catY));
+    	}
+        	
         
     }
 

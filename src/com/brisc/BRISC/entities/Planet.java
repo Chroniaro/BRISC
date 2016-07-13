@@ -15,8 +15,8 @@ import java.util.HashMap;
  */
 public class Planet extends Orbitor {
     
-	double size;
-	Color color;
+	private double size;
+	private Color color;
     
     public Planet(double x, double y, double size, Color color, double dist, double currentAng, double speed) {
     	
@@ -59,9 +59,9 @@ public class Planet extends Orbitor {
 				
 				"<x>"+ String.valueOf(x)+
 				"<y>"+ String.valueOf(y)+
-				"<size>"+ String.valueOf(size)+
+				"<size>"+ String.valueOf(getSize())+
 				"<visible>"+ String.valueOf(isVisible())+
-				"<color>"+ color.getRGB()+
+				"<color>"+ getColor().getRGB()+
 				"<speed>"+ speed+
 				"<dist>"+ dist+
 				"<angle>" + ang
@@ -82,5 +82,21 @@ public class Planet extends Orbitor {
     	return e;
     	
     }
+
+	public double getSize() {
+		return size;
+	}
+
+	public void setSize(double size) {
+		this.size = size;
+	}
+
+	public Color getColor() {
+		return color;
+	}
+
+	public void setColor(Color color) {
+		this.color = color;
+	}
     
 }
